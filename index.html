@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mr. White — Le Jeu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --card:#16161f;--card2:#1e1e2a;
+  --border:#2a2a3a;--border2:#3a3a50;
+  --text:#f0f0ff;--text2:#9090b0;
+  --red:#e84545;--red2:#ff6b6b;--red3:#ff4444;
+  --blue:#4a9eff;--blue2:#6ab8ff;
+  --green:#45c98a;--green2:#5ded9f;
+  --amber:#f0a030;--amber2:#ffbe50;
+  --purple:#9b59e8;--purple2:#b87fff;
+  --r:12px;--r2:8px;--r3:20px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;min-height:100vh;padding:16px;}
+.screen.active{display:flex;}
+
+/* ── TYPOGRAPHY ── */
+.logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:var(--red);text-align:center;line-height:1;margin-bottom:4px;}
+.logo span{color:var(--text);}
+.sub{text-align:center;color:var(--text2);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;}
+h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--text);}
+h3{font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.small{font-size:12px;color:var(--text2);}
+.section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:14px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .2s;letter-spacing:.5px;}
+.btn-primary{background:var(--red);color:#fff;}
+.btn-primary:active{background:var(--red3);transform:scale(.98);}
+.btn-secondary{background:transparent;color:var(--text);border:1.5px solid var(--border2);}
+.btn-secondary:active{background:var(--card);transform:scale(.98);}
+.btn-ghost{background:var(--card2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:active{opacity:.7;transform:scale(.98);}
+.btn-green{background:var(--green);color:#003020;}
+.btn-green:active{transform:scale(.98);}
+
+/* ── LAYOUT HELPERS ── */
+.gap{gap:10px;display:flex;flex-direction:column;}
+.flex{display:flex;align-items:center;}
+.flex-between{display:flex;align-items:center;justify-content:space-between;}
+.mt{margin-top:12px;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.field{margin-bottom:14px;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.card2{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;}
+
+/* ── FORM ELEMENTS ── */
+input,select{width:100%;padding:13px 14px;border-radius:var(--r2);background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;}
+input:focus,select:focus{border-color:var(--border2);}
+input::placeholder{color:var(--text2);}
+select option{background:var(--card2);}
+
+/* ── TAGS & BADGES ── */
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px;}
+.tag-red{background:rgba(232,69,69,.15);color:var(--red2);border:1px solid rgba(232,69,69,.3);}
+.tag-blue{background:rgba(74,158,255,.12);color:var(--blue2);border:1px solid rgba(74,158,255,.25);}
+.tag-green{background:rgba(69,201,138,.12);color:var(--green2);border:1px solid rgba(69,201,138,.25);}
+.tag-amber{background:rgba(240,160,48,.12);color:var(--amber2);border:1px solid rgba(240,160,48,.25);}
+
+/* ── SPECIAL ELEMENTS ── */
+.code-box{font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:10px;color:var(--red);text-align:center;padding:20px;background:var(--card2);border-radius:var(--r);border:1px dashed var(--border2);margin:10px 0;}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;}
+.player-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r2);border:1px solid var(--border);}
+.num-btn{width:44px;height:44px;border-radius:50%;background:var(--card2);border:1.5px solid var(--border2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.num-btn:active{background:var(--border);transform:scale(.95);}
+.num-val{font-size:28px;font-weight:700;min-width:44px;text-align:center;}
+.counter-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+.add-player-row{display:flex;gap:8px;margin-bottom:12px;}
+.add-player-row input{flex:1;}
+.add-player-row button{padding:12px 16px;background:var(--red);color:#fff;border:none;border-radius:var(--r2);font-size:18px;cursor:pointer;font-weight:700;}
+.phase-bar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;position:sticky;top:0;z-index:10;}
+.tab-bar{display:flex;gap:6px;margin-bottom:16px;}
+.tab{flex:1;padding:8px;border-radius:var(--r2);background:var(--card);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;letter-spacing:.5px;}
+.tab.active{background:var(--red);color:#fff;border-color:var(--red);}
+.vote-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+.vote-card{background:var(--card2);border:1.5px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center;cursor:pointer;transition:all .2s;}
+.vote-card:active,.vote-card.selected{border-color:var(--red2);background:rgba(232,69,69,.08);}
+.vote-card .vname{font-weight:600;font-size:14px;}
+.vote-card .vvotes{font-size:11px;color:var(--text2);margin-top:4px;}
+.role-reveal{text-align:center;padding:24px 16px;}
+.role-badge{display:inline-block;padding:8px 28px;border-radius:40px;font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;margin:16px 0;}
+.word-box{font-size:36px;font-weight:700;text-align:center;padding:20px;background:var(--card2);border-radius:var(--r);border:1px solid var(--border2);margin:16px 0;letter-spacing:2px;}
+.alive-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;}
+.dead-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);display:inline-block;margin-right:6px;}
+.mr-white-guess{width:100%;padding:14px;border-radius:var(--r2);background:var(--bg2);border:2px solid var(--red);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;margin-bottom:10px;}
+
+/* ── OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay.hidden{display:none;}
+.overlay-box{background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:24px;width:100%;max-width:360px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:10px 20px;border-radius:30px;font-size:13px;z-index:200;animation:fadeIn .2s ease;white-space:nowrap;}
+
+/* ── ANIMATIONS ── */
+.spin{animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.pulse{animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.fade-in{animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN: HOME
+══════════════════════════════════════ -->
+<div class="screen active" id="s-home">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 0;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div style="font-size:64px;margin-bottom:8px;">🕵️</div>
+      <div class="logo">MR.<span>WHITE</span></div>
+      <div class="sub">Qui cache son identité ?</div>
+    </div>
+    <div class="gap">
+      <button class="btn btn-primary" onclick="showScreen('s-create')">🎮 Créer une partie</button>
+      <button class="btn btn-secondary" onclick="showScreen('s-join')">🔗 Rejoindre une partie</button>
+      <button class="btn btn-ghost" onclick="showScreen('s-rules')">📖 Règles du jeu</button>
+    </div>
+  </div>
+  <div style="text-align:center;padding:16px;" class="small">Jusqu'à 20 joueurs · Multi-appareils · Hors-ligne</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: RULES
+══════════════════════════════════════ -->
+<div class="screen" id="s-rules">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button class="btn btn-ghost" style="width:44px;padding:0;height:44px;flex-shrink:0;" onclick="showScreen('s-home')">←</button>
+    <h2>Règles</h2>
+  </div>
+  <div class="gap" style="overflow-y:auto;flex:1;">
+    <div class="card">
+      <h3>🎭 Les Rôles</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="flex" style="gap:10px;align-items:flex-start;">
+          <span class="tag tag-red" style="flex-shrink:0;margin-top:2px;">Mr. White</span>
+          <span class="small" style="flex:1;line-height:1.6;">Ne connaît pas le mot secret. Doit bluffer en écoutant les autres et, s'il est éliminé, tenter de deviner le mot pour gagner.</span>
+        </div>
+        <div class="flex" style="gap:10px;align-items:flex-start;">
+          <span class="tag tag-amber" style="flex-shrink:0;margin-top:2px;">Undercover</span>
+          <span class="small" style="flex:1;line-height:1.6;">Reçoit un mot similaire mais différent. Doit rester discret et éviter d'être démasqué par les civils.</span>
+        </div>
+        <div class="flex" style="gap:10px;align-items:flex-start;">
+          <span class="tag tag-green" style="flex-shrink:0;margin-top:2px;">Civil</span>
+          <span class="small" style="flex:1;line-height:1.6;">Reçoit le mot secret. Doit identifier Mr. White et l'Undercover avant d'être éliminé.</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🎮 Déroulement d'une manche</h3>
+      <div style="font-size:13px;color:var(--text2);line-height:2;">
+        <b style="color:var(--text);">1.</b> Chaque joueur reçoit son rôle en secret<br>
+        <b style="color:var(--text);">2.</b> À tour de rôle, chacun décrit son mot en <b style="color:var(--text)">un seul mot</b><br>
+        <b style="color:var(--text);">3.</b> Discussion libre entre tous les joueurs<br>
+        <b style="color:var(--text);">4.</b> Vote : le joueur avec le plus de votes est éliminé<br>
+        <b style="color:var(--text);">5.</b> Si Mr. White est éliminé, il peut tenter de deviner<br>
+        <b style="color:var(--text);">6.</b> Répéter jusqu'à la victoire d'un camp
+      </div>
+    </div>
+    <div class="card">
+      <h3>🏆 Conditions de Victoire</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div><span class="tag tag-red">Mr. White</span> <span class="small" style="margin-left:6px;">Survive jusqu'à 2 joueurs restants, ou devine le mot si éliminé</span></div>
+        <div><span class="tag tag-amber">Undercover</span> <span class="small" style="margin-left:6px;">Élimine tous les civils ou survit jusqu'à 2 joueurs</span></div>
+        <div><span class="tag tag-green">Civils</span> <span class="small" style="margin-left:6px;">Éliminent tous les Mr. White et Undercov er</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>📱 Multi-Appareils</h3>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        L'admin crée une salle et partage le code à 4 lettres.<br>
+        Chaque joueur rejoint depuis son téléphone.<br>
+        Sans téléphone ? Ajoutez plusieurs joueurs sur un même appareil — le jeu gère le passage en privé !
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: CREATE GAME
+══════════════════════════════════════ -->
+<div class="screen" id="s-create">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button class="btn btn-ghost" style="width:44px;padding:0;height:44px;flex-shrink:0;" onclick="showScreen('s-home')">←</button>
+    <h2>Nouvelle Partie</h2>
+  </div>
+  <div style="overflow-y:auto;flex:1;">
+    <div class="field">
+      <label>Votre nom (Admin)</label>
+      <input id="admin-name" placeholder="Votre pseudo..." maxlength="16">
+    </div>
+
+    <div class="divider"></div>
+    <h3>👥 Joueurs supplémentaires sur cet appareil</h3>
+    <div class="small" style="margin-bottom:10px;">Pour les joueurs sans téléphone ou partageant cet appareil</div>
+    <div class="add-player-row">
+      <input id="extra-name" placeholder="Nom du joueur..." maxlength="16"
+             onkeydown="if(event.key==='Enter')addExtraPlayer()">
+      <button onclick="addExtraPlayer()">+</button>
+    </div>
+    <div id="extra-players-list" class="gap" style="margin-bottom:16px;"></div>
+
+    <div class="divider"></div>
+    <h3>⚙️ Nombre d'imposteurs</h3>
+    <div class="counter-row">
+      <div>
+        <div style="font-weight:600;font-size:14px;">Mr. White</div>
+        <div class="small">Sans mot — doit bluffer</div>
+      </div>
+      <div class="flex" style="gap:12px;align-items:center;">
+        <button class="num-btn" onclick="adj('mr',-1)">−</button>
+        <div class="num-val" id="cnt-mr">1</div>
+        <button class="num-btn" onclick="adj('mr',1)">+</button>
+      </div>
+    </div>
+    <div class="counter-row">
+      <div>
+        <div style="font-weight:600;font-size:14px;">Undercover</div>
+        <div class="small">Mot proche — doit se fondre</div>
+      </div>
+      <div class="flex" style="gap:12px;align-items:center;">
+        <button class="num-btn" onclick="adj('uc',-1)">−</button>
+        <div class="num-val" id="cnt-uc">1</div>
+        <button class="num-btn" onclick="adj('uc',1)">+</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>📝 Les mots sont choisis aléatoirement</h3>
+    <div class="small" style="margin-bottom:16px;color:var(--text2);">Les mots seront sélectionnés au hasard parmi les paires disponibles. Chaque partie est unique !</div>
+
+    <div class="divider"></div>
+    <button class="btn btn-primary" onclick="createGame()">Créer la partie →</button>
+    <div style="height:30px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: LOBBY (ADMIN VIEW)
+══════════════════════════════════════ -->
+<div class="screen" id="s-lobby">
+  <div class="phase-bar">
+    <div class="flex-between">
+      <h2>Salle d'attente</h2>
+      <span id="lobby-code-badge" class="tag tag-red"
+            style="font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;"></span>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px;">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="small" style="margin-bottom:6px;">Code à partager</div>
+      <div class="code-box" id="room-code-display">----</div>
+      <div class="small" style="text-align:center;">Partagez ce code à vos amis</div>
+    </div>
+    <div class="flex-between" style="margin-bottom:8px;">
+      <h3 style="margin-bottom:0;">Joueurs <span id="player-count" style="color:var(--red);">0</span></h3>
+      <button class="btn btn-ghost" onclick="refreshLobby()"
+              style="width:auto;padding:6px 14px;font-size:12px;">↺ Actualiser</button>
+    </div>
+    <div id="players-list" class="gap" style="margin-bottom:16px;"></div>
+    <div id="lobby-warning" class="small"
+         style="color:var(--red2);text-align:center;margin-bottom:12px;display:none;"></div>
+    <button class="btn btn-primary" id="start-btn" onclick="startGame()" disabled>
+      Lancer la partie
+    </button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="confirmLeave()">Quitter / Annuler</button>
+    <div style="height:20px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: JOIN GAME
+══════════════════════════════════════ -->
+<div class="screen" id="s-join">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button class="btn btn-ghost" style="width:44px;padding:0;height:44px;flex-shrink:0;"
+            onclick="showScreen('s-home')">←</button>
+    <h2>Rejoindre</h2>
+  </div>
+  <div class="field">
+    <label>Code de la salle</label>
+    <input id="join-code" placeholder="XXXX" maxlength="4"
+           style="text-transform:uppercase;font-size:32px;text-align:center;letter-spacing:8px;font-family:'Bebas Neue'"
+           oninput="this.value=this.value.toUpperCase()">
+  </div>
+  <div class="divider"></div>
+  <h3>Joueurs sur cet appareil</h3>
+  <div class="small" style="margin-bottom:10px;">Ajoutez tous les joueurs qui utilisent cet appareil</div>
+  <div class="add-player-row">
+    <input id="join-name" placeholder="Nom..." maxlength="16"
+           onkeydown="if(event.key==='Enter')addJoinPlayer()">
+    <button onclick="addJoinPlayer()">+</button>
+  </div>
+  <div id="join-players-list" class="gap" style="margin-bottom:16px;"></div>
+  <button class="btn btn-primary" onclick="joinGame()">Rejoindre →</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: WAITING (NON-ADMIN)
+══════════════════════════════════════ -->
+<div class="screen" id="s-waiting">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+    <div style="font-size:56px;margin-bottom:16px;" class="pulse">⌛</div>
+    <h2 style="text-align:center;margin-bottom:8px;">En attente...</h2>
+    <div class="small" style="text-align:center;margin-bottom:24px;">L'admin va lancer la partie</div>
+    <div id="waiting-players" class="gap" style="width:100%;max-width:340px;margin-bottom:20px;"></div>
+    <button class="btn btn-ghost" style="width:auto;padding:10px 24px;" onclick="refreshWaiting()">
+      ↺ Actualiser
+    </button>
+  </div>
+  <button class="btn btn-ghost" style="margin:16px;" onclick="confirmLeave()">Quitter</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: ROLE REVEAL QUEUE
+══════════════════════════════════════ -->
+<div class="screen" id="s-reveal-queue">
+  <div class="phase-bar" style="text-align:center;">
+    <div class="small" style="margin-bottom:4px;">Révélation des rôles — privée</div>
+    <div style="font-size:13px;font-weight:500;" id="reveal-progress-text"></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;"
+       id="reveal-content">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: GAME PLAY
+══════════════════════════════════════ -->
+<div class="screen" id="s-game">
+  <div class="phase-bar" id="game-phase-bar">
+    <div class="flex-between">
+      <div>
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;">
+          Manche <span id="round-num">1</span>
+        </div>
+        <div style="font-weight:600;" id="phase-title">Discussion</div>
+      </div>
+      <div class="flex" style="gap:8px;">
+        <span class="tag tag-green" id="alive-count"></span>
+        <span class="tag tag-red" id="dead-count" style="display:none;"></span>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px;">
+    <div class="tab-bar">
+      <div class="tab active" onclick="gameTab('discuss')" id="tab-discuss">Discussion</div>
+      <div class="tab" id="tab-vote" style="display:none;">Vote</div>
+      <div class="tab" onclick="gameTab('status')" id="tab-status">Statut</div>
+    </div>
+
+    <!-- TAB: DISCUSSION -->
+    <div id="panel-discuss" class="fade-in">
+      <div class="card" style="margin-bottom:12px;">
+        <h3>Ordre de jeu</h3>
+        <div id="turn-order" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+      </div>
+      <div id="device-players-panel"></div>
+    </div>
+
+    <!-- TAB: VOTE (ADMIN ONLY) -->
+    <div id="panel-vote" style="display:none;" class="fade-in">
+      <div class="card" style="margin-bottom:12px;">
+        <div style="font-weight:600;margin-bottom:4px;">🔨 Élimination (Admin uniquement)</div>
+        <div class="small">L'admin choisit qui éliminer après discussion</div>
+      </div>
+      <div id="vote-grid" class="vote-grid"></div>
+      <button class="btn btn-primary" onclick="processVotes()"
+              id="vote-confirm-btn" style="margin-top:8px;" disabled>
+        ✓ Éliminer ce joueur
+      </button>
+    </div>
+
+    <!-- TAB: STATUS -->
+    <div id="panel-status" style="display:none;" class="fade-in">
+      <div id="status-list" class="gap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: ELIMINATION
+══════════════════════════════════════ -->
+<div class="screen" id="s-elim">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+    <div style="font-size:64px;margin-bottom:16px;" id="elim-icon">💀</div>
+    <h2 style="margin-bottom:8px;" id="elim-title">Éliminé !</h2>
+    <div id="elim-role-badge" style="margin:12px 0;"></div>
+    <div style="font-size:15px;color:var(--text2);margin-bottom:24px;" id="elim-msg"></div>
+
+    <!-- Mr. White guess panel -->
+    <div id="mrwhite-guess-panel" style="width:100%;display:none;">
+      <div class="card" style="margin-bottom:12px;text-align:left;">
+        <div style="font-weight:600;margin-bottom:8px;color:var(--red2);">🎯 Dernière chance !</div>
+        <div class="small" style="margin-bottom:12px;">Devinez le mot des Civils pour gagner !</div>
+        <input class="mr-white-guess" id="mw-guess-input" placeholder="Votre réponse..."
+               onkeydown="if(event.key==='Enter')submitMrWhiteGuess()">
+        <button class="btn btn-primary" onclick="submitMrWhiteGuess()">Confirmer ma réponse</button>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" id="elim-continue-btn" onclick="continueAfterElim()">
+      Continuer →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: END GAME
+══════════════════════════════════════ -->
+<div class="screen" id="s-end">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+    <div style="font-size:72px;margin-bottom:16px;" id="end-icon">🏆</div>
+    <div class="logo" id="end-title" style="margin-bottom:8px;">FIN !</div>
+    <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:24px;"
+         id="end-team"></div>
+    <div id="end-reveal" class="gap" style="width:100%;margin-bottom:24px;"></div>
+    <button class="btn btn-primary" onclick="newGame()">🔄 Rejouer</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="showScreen('s-home')">
+      🏠 Menu principal
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     OVERLAY: Confirm Leave
+══════════════════════════════════════ -->
+<div class="overlay hidden" id="overlay-leave">
+  <div class="overlay-box">
+    <h3 style="margin-bottom:12px;color:var(--text);">Quitter la partie ?</h3>
+    <div class="small" style="margin-bottom:20px;">
+      Si vous êtes l'admin, la salle sera supprimée pour tous.
+    </div>
+    <div class="gap">
+      <button class="btn btn-primary" onclick="leaveGame()">Quitter définitivement</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('overlay-leave')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT — GAME ENGINE
+══════════════════════════════════════ -->
+<script>
+/* ── WORD PAIRS (civil / undercover) ── */
+const WORD_PAIRS = [
+  ["Plage","Mer"],["Pizza","Calzone"],["Lion","Tigre"],["Forêt","Jungle"],
+  ["Chocolat","Caramel"],["Avion","Hélicoptère"],["Guitare","Violon"],
+  ["Café","Thé"],["Soleil","Lune"],["Voiture","Moto"],["Piscine","Lac"],
+  ["Médecin","Infirmier"],["Château","Manoir"],["Sorcier","Vampire"],
+  ["Glace","Sorbet"],["Paris","Rome"],["Football","Rugby"],["Balcon","Terrasse"],
+  ["Cinéma","Théâtre"],["Tigre","Léopard"],["Neige","Verglas"],["Château","Palais"],
+  ["Requin","Orque"],["Banane","Mangue"],["Ordinateur","Tablette"],
+  ["Boulanger","Pâtissier"],["Couteau","Ciseau"],["Train","Métro"],
+  ["Montagne","Colline"],["Rivière","Ruisseau"],["Pomme","Poire"],
+  ["Chien","Loup"],["Chat","Renard"],["Fraise","Cerise"],["Hôtel","Auberge"],
+];
+
+/* ── GLOBAL STATE ── */
+let G = {
+  roomCode: '', isAdmin: false,
+  devicePlayers: [],      // joueurs sur CET appareil
+  allPlayers: [],         // tous les joueurs de la partie
+  roles: {},              // { nom: 'civil'|'undercover'|'mr_white' }
+  words: { civil: '', uc: '' },
+  alive: [], eliminated: [],
+  round: 1, phase: 'discuss',
+  votes: {},
+  currentRevealIdx: 0,
+  mrWhiteGuessed: false,
+  mrCounts: { mr: 1, uc: 1 },
+  scores: {},             // { nom: points }
+};
+
+let extraPlayers = [];   // joueurs extra sur l'appareil admin
+let joinPlayers  = [];   // joueurs sur l'appareil qui rejoint
+let pollInterval = null;
+
+// Vérifier si une partie était en cours et la restaurer
+window.addEventListener('load', function() {
+  // Récupérer le code de salle sauvegardé
+  const savedCode = localStorage.getItem('mrw_currentRoom');
+  if (savedCode) {
+    const rd = loadRoom(savedCode);
+    if (rd && rd.status === 'started' && rd.gameState) {
+      // Une partie était en cours, la restaurer
+      G.roomCode = savedCode;
+      G.isAdmin = localStorage.getItem('mrw_isAdmin') === 'true';
+      G.devicePlayers = JSON.parse(localStorage.getItem('mrw_devicePlayers') || '[]');
+      applyGameState(rd);
+      
+      // Afficher l'écran du jeu
+      if (G.eliminated.length > 0 || G.round > 1 || G.alive.length < G.allPlayers.length) {
+        showScreen('s-game');
+        if (G.isAdmin) {
+          gameTab('discuss');
+        } else {
+          gameTab('status');
+        }
+        updateGameUI();
+      } else {
+        startRevealPhase();
+      }
+      startPolling();
+    }
+  }
+});
+
+// Sauvegarder le code de salle et infos actuels
+function setCurrentRoom(code, isAdmin, devicePlayers) {
+  G.roomCode = code;
+  G.isAdmin = isAdmin;
+  G.devicePlayers = devicePlayers;
+  localStorage.setItem('mrw_currentRoom', code);
+  localStorage.setItem('mrw_isAdmin', isAdmin.toString());
+  localStorage.setItem('mrw_devicePlayers', JSON.stringify(devicePlayers));
+}
+
+/* ─────────────────────────────────────
+   UI HELPERS
+───────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toast(msg, dur = 2800) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), dur);
+}
+
+function closeOverlay(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+const AVATAR_BG    = ['rgba(74,158,255,.15)','rgba(69,201,138,.15)','rgba(240,160,48,.15)',
+                       'rgba(155,89,232,.15)','rgba(232,69,69,.15)','rgba(74,200,200,.15)'];
+const AVATAR_COLOR = ['var(--blue2)','var(--green2)','var(--amber2)',
+                       'var(--purple2)','var(--red2)','#50e0e0'];
+const getAvatarBg    = i => AVATAR_BG[i % AVATAR_BG.length];
+const getAvatarColor = i => AVATAR_COLOR[i % AVATAR_COLOR.length];
+
+/* ─────────────────────────────────────
+   COUNTER BUTTONS (Mr. White / Undercover count)
+───────────────────────────────────── */
+function adj(type, delta) {
+  const el = document.getElementById('cnt-' + type);
+  let v = parseInt(el.textContent) + delta;
+  if (v < 0) v = 0;
+  if (v > 4) v = 4;
+  el.textContent = v;
+  if (type === 'mr') G.mrCounts.mr = v;
+  else               G.mrCounts.uc = v;
+}
+
+/* ─────────────────────────────────────
+   EXTRA PLAYERS (admin device)
+───────────────────────────────────── */
+function addExtraPlayer() {
+  const n = document.getElementById('extra-name').value.trim();
+  if (!n) return toast('Entrez un nom');
+  if (extraPlayers.map(x=>x.toLowerCase()).includes(n.toLowerCase()))
+    return toast('Ce nom est déjà pris');
+  extraPlayers.push(n);
+  document.getElementById('extra-name').value = '';
+  renderExtraPlayers();
+}
+function removeExtra(i) { extraPlayers.splice(i, 1); renderExtraPlayers(); }
+function renderExtraPlayers() {
+  document.getElementById('extra-players-list').innerHTML =
+    extraPlayers.map((n, i) => `
+      <div class="player-row">
+        <div class="avatar" style="background:${getAvatarBg(i+1)};color:${getAvatarColor(i+1)}">${n[0].toUpperCase()}</div>
+        <span style="flex:1;font-size:14px;">${escHtml(n)}</span>
+        <button onclick="removeExtra(${i})"
+                style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;">×</button>
+      </div>`).join('');
+}
+
+/* ─────────────────────────────────────
+   JOIN PLAYERS (non-admin device)
+───────────────────────────────────── */
+function addJoinPlayer() {
+  const n = document.getElementById('join-name').value.trim();
+  if (!n) return toast('Entrez un nom');
+  if (joinPlayers.map(x=>x.toLowerCase()).includes(n.toLowerCase()))
+    return toast('Ce nom est déjà pris');
+  joinPlayers.push(n);
+  document.getElementById('join-name').value = '';
+  renderJoinPlayers();
+}
+function removeJoinPlayer(i) { joinPlayers.splice(i, 1); renderJoinPlayers(); }
+function renderJoinPlayers() {
+  document.getElementById('join-players-list').innerHTML =
+    joinPlayers.map((n, i) => `
+      <div class="player-row">
+        <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${n[0].toUpperCase()}</div>
+        <span style="flex:1;font-size:14px;">${escHtml(n)}</span>
+        <button onclick="removeJoinPlayer(${i})"
+                style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;">×</button>
+      </div>`).join('');
+}
+
+/* ─────────────────────────────────────
+   RANDOM WORDS
+───────────────────────────────────── */
+function randomWords() {
+  const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
+  document.getElementById('word-civil').value = pair[0];
+  document.getElementById('word-uc').value    = pair[1];
+  toast('Mots générés : ' + pair[0] + ' / ' + pair[1]);
+}
+
+/* ─────────────────────────────────────
+   LOCAL STORAGE — Room persistence
+   (same device = instant; cross-device
+    on same network via shared localStorage
+    is not possible — players on separate
+    devices use the polling mechanism via
+    a shared key stored on the admin device
+    when using the same browser/profile,
+    or they can use a LAN server.
+    For full cross-device: host this file
+    on a server with a real backend.)
+───────────────────────────────────── */
+function genCode() {
+  return Math.random().toString(36).substr(2, 4).toUpperCase();
+}
+function saveRoom(data) {
+  localStorage.setItem('mrw_' + data.code, JSON.stringify(data));
+}
+function loadRoom(code) {
+  try { return JSON.parse(localStorage.getItem('mrw_' + code)); }
+  catch { return null; }
+}
+function clearRoom(code) {
+  localStorage.removeItem('mrw_' + code);
+}
+
+function saveGameState() {
+  if (!G.roomCode) return;
+  const rd = loadRoom(G.roomCode);
+  if (rd) {
+    rd.gameState = {
+      roles: G.roles,
+      alive: G.alive,
+      eliminated: G.eliminated,
+      round: G.round,
+      phase: G.phase,
+      votes: G.votes,
+      scores: G.scores,
+    };
+    saveRoom(rd);
+  }
+}
+
+function restoreGameState() {
+  if (!G.roomCode) return;
+  const rd = loadRoom(G.roomCode);
+  if (rd && rd.gameState) {
+    applyGameState(rd);
+    return true;
+  }
+  return false;
+}
+
+/* ─────────────────────────────────────
+   CREATE GAME
+───────────────────────────────────── */
+function createGame() {
+  const adminName = document.getElementById('admin-name').value.trim();
+  if (!adminName) return toast('Entrez votre nom');
+
+  // Générer automatiquement et aléatoirement une paire de mots
+  const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
+  const wc = pair[0];
+  const wu = pair[1];
+
+  const mrN = parseInt(document.getElementById('cnt-mr').textContent);
+  const ucN = parseInt(document.getElementById('cnt-uc').textContent);
+
+  const code = genCode();
+  G.roomCode     = code;
+  G.isAdmin      = true;
+  G.devicePlayers= [adminName, ...extraPlayers];
+  G.words        = { civil: wc, uc: wu };
+  G.mrCounts     = { mr: mrN, uc: ucN };
+
+  const roomData = {
+    code,
+    status: 'waiting',
+    adminName,
+    players: G.devicePlayers.map(n => ({ name: n, device: 'admin' })),
+    words:   { civil: wc, uc: wu },
+    mrCounts: { mr: mrN, uc: ucN },
+    gameState: null,
+  };
+  saveRoom(roomData);
+  setCurrentRoom(code, true, G.devicePlayers);
+  extraPlayers = [];
+  showLobby(roomData);
+  startPolling();
+}
+
+/* ─────────────────────────────────────
+   LOBBY
+───────────────────────────────────── */
+function showLobby(rd) {
+  document.getElementById('room-code-display').textContent  = rd.code;
+  document.getElementById('lobby-code-badge').textContent   = rd.code;
+  showScreen('s-lobby');
+  updateLobbyPlayers(rd);
+}
+
+function refreshLobby() {
+  const rd = loadRoom(G.roomCode);
+  if (rd) updateLobbyPlayers(rd);
+  else toast('Salle introuvable');
+}
+
+function updateLobbyPlayers(rd) {
+  const players = rd.players || [];
+  document.getElementById('player-count').textContent = players.length;
+  document.getElementById('players-list').innerHTML =
+    players.map((p, i) => `
+      <div class="player-row">
+        <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p.name[0].toUpperCase()}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:500;">${escHtml(p.name)}</div>
+          <div class="small">${p.device === 'admin' ? 'Appareil Admin' : 'Appareil ' + p.device.substring(0,6)}</div>
+        </div>
+        ${p.device === 'admin' ? '<span class="tag tag-red">Admin</span>' : ''}
+      </div>`).join('');
+
+  const minP = G.mrCounts.mr + G.mrCounts.uc + 2;
+  const btn  = document.getElementById('start-btn');
+  const warn = document.getElementById('lobby-warning');
+  if (players.length >= minP) {
+    btn.disabled    = false;
+    btn.textContent = `Lancer la partie (${players.length} joueurs)`;
+    warn.style.display = 'none';
+  } else {
+    btn.disabled    = true;
+    btn.textContent = 'Lancer la partie';
+    warn.style.display = 'block';
+    warn.textContent = `Minimum ${minP} joueurs requis (${minP - players.length} manquants)`;
+  }
+}
+
+/* ─────────────────────────────────────
+   JOIN GAME
+───────────────────────────────────── */
+function joinGame() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (code.length !== 4) return toast('Le code fait 4 caractères');
+  if (joinPlayers.length === 0) return toast('Ajoutez au moins un joueur');
+
+  const rd = loadRoom(code);
+  if (!rd) return toast('Salle introuvable ! Vérifiez le code.');
+  if (rd.status === 'started') return toast('La partie a déjà commencé');
+
+  const existing = rd.players.map(p => p.name.toLowerCase());
+  for (const n of joinPlayers) {
+    if (existing.includes(n.toLowerCase()))
+      return toast(`"${n}" est déjà dans la salle`);
+  }
+
+  G.roomCode      = code;
+  G.isAdmin       = false;
+  G.devicePlayers = [...joinPlayers];
+  G.words         = rd.words;
+  G.mrCounts      = rd.mrCounts;
+
+  const devId = genCode();
+  rd.players.push(...joinPlayers.map(n => ({ name: n, device: devId })));
+  saveRoom(rd);
+  setCurrentRoom(code, false, G.devicePlayers);
+  joinPlayers = [];
+
+  showWaiting(rd);
+  startPolling();
+}
+
+function showWaiting(rd) {
+  showScreen('s-waiting');
+  renderWaitingPlayers(rd);
+}
+function refreshWaiting() {
+  const rd = loadRoom(G.roomCode);
+  if (rd) renderWaitingPlayers(rd);
+}
+function renderWaitingPlayers(rd) {
+  const players = rd.players || [];
+  document.getElementById('waiting-players').innerHTML =
+    players.map((p, i) => `
+      <div class="player-row">
+        <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p.name[0].toUpperCase()}</div>
+        <span style="flex:1;font-size:14px;">${escHtml(p.name)}</span>
+        ${G.devicePlayers.includes(p.name) ? '<span class="tag tag-blue">Vous</span>' : ''}
+      </div>`).join('');
+}
+
+/* ─────────────────────────────────────
+   POLLING (checks every 1.2s)
+───────────────────────────────────── */
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(() => {
+    const rd = loadRoom(G.roomCode);
+    if (!rd) { clearInterval(pollInterval); return; }
+    if (G.isAdmin) {
+      updateLobbyPlayers(rd);
+      if (rd.status === 'started') { clearInterval(pollInterval); loadAndStart(rd); }
+    } else {
+      renderWaitingPlayers(rd);
+      if (rd.status === 'started') { clearInterval(pollInterval); loadAndStart(rd); }
+    }
+  }, 1200);
+}
+
+/* ─────────────────────────────────────
+   ROLE ASSIGNMENT
+───────────────────────────────────── */
+function assignRoles(players, mrCount, ucCount) {
+  const shuffled = [...players].sort(() => Math.random() - .5);
+  const roles = {};
+  shuffled.forEach((p, i) => {
+    if      (i < mrCount)           roles[p] = 'mr_white';
+    else if (i < mrCount + ucCount) roles[p] = 'undercover';
+    else                            roles[p] = 'civil';
+  });
+  return roles;
+}
+
+/* ─────────────────────────────────────
+   START GAME (admin triggers)
+───────────────────────────────────── */
+function startGame() {
+  const rd = loadRoom(G.roomCode);
+  if (!rd) return toast('Erreur: salle introuvable');
+
+  const players = rd.players.map(p => p.name);
+  const roles   = assignRoles(players, rd.mrCounts.mr, rd.mrCounts.uc);
+
+  rd.status    = 'started';
+  rd.gameState = {
+    roles,
+    alive:      [...players],
+    eliminated: [],
+    round:      1,
+    phase:      'discuss',
+    votes:      {},
+  };
+  saveRoom(rd);
+  clearInterval(pollInterval);
+
+  applyGameState(rd);
+  startRevealPhase();
+}
+
+/* Load state from storage (non-admin devices) */
+function loadAndStart(rd) {
+  applyGameState(rd);
+  startRevealPhase();
+}
+
+function applyGameState(rd) {
+  const gs = rd.gameState;
+  G.allPlayers = rd.players.map(p => p.name);
+  G.roles      = gs.roles;
+  G.alive      = [...gs.alive];
+  G.eliminated = [...gs.eliminated];
+  G.round      = gs.round;
+  G.phase      = gs.phase;
+  G.votes      = gs.votes || {};
+  G.words      = rd.words;
+  G.mrCounts   = rd.mrCounts;
+  G.scores     = gs.scores || {};
+}
+
+/* ─────────────────────────────────────
+   REVEAL PHASE (private, per device)
+───────────────────────────────────── */
+function startRevealPhase() {
+  // Charger les scores cumulatifs au démarrage de la partie
+  G.scores = loadPlayerScores();
+  G.currentRevealIdx = 0;
+  saveGameState();
+  showNextReveal();
+}
+
+function showNextReveal() {
+  const players = G.devicePlayers.filter(p => G.alive.includes(p));
+  if (G.currentRevealIdx >= players.length) { showGameScreen(); return; }
+
+  showScreen('s-reveal-queue');
+  const name  = players[G.currentRevealIdx];
+  const total = players.length;
+  document.getElementById('reveal-progress-text').textContent =
+    `Joueur ${G.currentRevealIdx + 1} / ${total}`;
+
+  const role = G.roles[name];
+  const content = document.getElementById('reveal-content');
+  
+  // SEUL Mr. White doit connaître son rôle au départ
+  // Les Civil/Undercover reçoivent juste leur mot et doivent découvrir par eux-mêmes
+  if (role === 'mr_white') {
+    content.innerHTML = `
+      <div class="role-reveal fade-in">
+        <div style="font-size:56px;margin-bottom:16px;">🕵️</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px;">VOUS ÊTES</div>
+        <div class="role-badge"
+             style="background:rgba(232,69,69,.15);color:var(--red2);border:2px solid var(--red);">
+          MR. WHITE
+        </div>
+        <div style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:28px;">
+          Vous <b style="color:var(--text)">ne connaissez pas</b> le mot secret.<br>
+          Écoutez les autres et bluffez !<br>
+          Si vous êtes éliminé, tentez de deviner.
+        </div>
+        <button class="btn btn-primary" onclick="nextReveal()">J'ai compris →</button>
+      </div>`;
+  } else {
+    // Civil ET Undercover : reçoivent JUSTE le mot, pas le rôle
+    const word = role === 'civil' ? G.words.civil : G.words.uc;
+    content.innerHTML = `
+      <div class="role-reveal fade-in">
+        <div style="font-size:56px;margin-bottom:16px;">📝</div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px;color:var(--text2);">Votre mot secret</div>
+        <div class="word-box" style="color:var(--text);">${escHtml(word)}</div>
+        <div style="color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:28px;">
+          Décrivez ce mot sans le dire directement.<br>
+          <b style="color:var(--amber2);">À vous de découvrir</b> si c'est le vrai mot ou la fausse piste !
+        </div>
+        <button class="btn btn-primary" onclick="nextReveal()">J'ai vu mon mot →</button>
+      </div>`;
+  }
+}
+
+function nextReveal() {
+  G.currentRevealIdx++;
+  const players = G.devicePlayers.filter(p => G.alive.includes(p));
+  if (G.currentRevealIdx < players.length) {
+    const nextName = players[G.currentRevealIdx];
+    document.getElementById('reveal-content').innerHTML = `
+      <div style="text-align:center;padding:24px;" class="fade-in">
+        <div style="font-size:56px;margin-bottom:16px;">🙈</div>
+        <div style="font-size:16px;color:var(--text2);margin-bottom:8px;">Passez le téléphone à</div>
+        <div style="font-size:24px;font-weight:700;margin-bottom:24px;">${escHtml(nextName)}</div>
+        <div class="small" style="margin-bottom:24px;">Assurez-vous que personne ne voit l'écran</div>
+        <button class="btn btn-primary" onclick="showNextReveal()">Prêt →</button>
+      </div>`;
+  } else {
+    showGameScreen();
+  }
+}
+
+/* ─────────────────────────────────────
+   GAME SCREEN
+───────────────────────────────────── */
+function showGameScreen() {
+  showScreen('s-game');
+  // Admin voit la discussion, non-admin voit le statut
+  if (G.isAdmin) {
+    gameTab('discuss');
+  } else {
+    gameTab('status');
+  }
+  updateGameUI();
+}
+
+function updateGameUI() {
+  document.getElementById('round-num').textContent = G.round;
+  const alive = G.alive.length, dead = G.eliminated.length;
+  document.getElementById('alive-count').textContent = alive + ' vivants';
+  const deadEl = document.getElementById('dead-count');
+  if (dead > 0) { deadEl.textContent = dead + ' éliminés'; deadEl.style.display = ''; }
+  else deadEl.style.display = 'none';
+
+  // Afficher l'onglet Vote UNIQUEMENT pour l'admin
+  const tabVote = document.getElementById('tab-vote');
+  if (G.isAdmin) {
+    tabVote.style.display = 'block';
+    tabVote.classList.remove('active');
+    tabVote.onclick = function() { gameTab('vote'); };
+  } else {
+    tabVote.style.display = 'none';
+    // Les non-admin voient toujours le status
+    gameTab('status');
+  }
+
+  renderTurnOrder();
+  renderDevicePanel();
+  renderVoteGrid();
+  renderStatusList();
+}
+
+function renderTurnOrder() {
+  document.getElementById('turn-order').innerHTML =
+    G.alive.map((p, i) => {
+      const mine = G.devicePlayers.includes(p);
+      return `<div style="padding:4px 10px;border-radius:20px;font-size:12px;
+        font-weight:${mine ? '700' : '400'};
+        background:${mine ? 'rgba(232,69,69,.15)' : 'var(--card2)'};
+        color:${mine ? 'var(--red2)' : 'var(--text2)'};
+        border:1px solid ${mine ? 'rgba(232,69,69,.3)' : 'var(--border)'};">
+        ${i + 1}. ${escHtml(p)}</div>`;
+    }).join('');
+}
+
+function renderDevicePanel() {
+  const aliveOnDevice = G.alive.filter(p => G.devicePlayers.includes(p));
+  const el = document.getElementById('device-players-panel');
+  if (!aliveOnDevice.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="card"><h3>Vos joueurs actifs</h3><div class="gap">` +
+    aliveOnDevice.map(p => {
+      // NE PAS afficher le rôle ou le mot - seulement le nom du joueur
+      // Les joueurs doivent découvrir par eux-mêmes leur rôle en écoutant les autres
+      return `<div class="player-row">
+        <div class="avatar" style="background:rgba(74,158,255,.15);color:var(--blue2)">${p[0].toUpperCase()}</div>
+        <div style="flex:1;font-size:14px;font-weight:500;">${escHtml(p)}</div>
+        <span class="tag tag-blue">Actif</span>
+      </div>`;
+    }).join('') + `</div></div>`;
+}
+
+/* ── TABS ── */
+function gameTab(tab) {
+  ['discuss', 'vote', 'status'].forEach(t => {
+    document.getElementById('panel-' + t).style.display = t === tab ? 'block' : 'none';
+    const tabEl = document.getElementById('tab-' + t);
+    if (tabEl) tabEl.classList.toggle('active', t === tab);
+  });
+  if (tab === 'vote')   renderVoteGrid();
+  if (tab === 'status') renderStatusList();
+}
+
+/* ── VOTE ── */
+function renderVoteGrid() {
+  const grid = document.getElementById('vote-grid');
+  
+  if (!G.isAdmin) {
+    // Non-admin : voir juste les statuts sans pouvoir voter
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;padding:16px;text-align:center;color:var(--text2);">
+        <div style="font-size:18px;margin-bottom:8px;">⏳</div>
+        <div>En attente de la décision de l'admin...</div>
+        <div class="small" style="margin-top:8px;">Seul l'admin peut éliminer</div>
+      </div>
+      <div style="grid-column:1/-1;display:grid;gap:8px;grid-template-columns:repeat(2,1fr);">` +
+      G.alive.map(p => `
+        <div class="player-row" style="padding:12px;cursor:default;">
+          <div class="avatar" style="background:rgba(74,158,255,.15);color:var(--blue2)">${p[0].toUpperCase()}</div>
+          <span style="flex:1;font-size:14px;">${escHtml(p)}</span>
+        </div>`).join('') + `</div>`;
+    return;
+  }
+  
+  // Admin : grille de vote complète
+  grid.innerHTML =
+    G.alive.map(p => `
+      <div class="vote-card" id="vc-${safeId(p)}" onclick="castVote('${escAttr(p)}')">
+        <div class="vname">${escHtml(p)}</div>
+        <div class="vvotes" id="vv-${safeId(p)}"></div>
+      </div>`).join('');
+  document.getElementById('vote-confirm-btn').disabled = true;
+  selectedVote = null;
+}
+
+let selectedVote = null;
+function castVote(player) {
+  selectedVote = player;
+  document.querySelectorAll('.vote-card').forEach(c => c.classList.remove('selected'));
+  const el = document.getElementById('vc-' + safeId(player));
+  if (el) el.classList.add('selected');
+  document.getElementById('vote-confirm-btn').disabled = false;
+}
+
+function processVotes() {
+  if (!selectedVote) return toast('Sélectionnez un joueur');
+  const eliminated = selectedVote;
+  G.eliminated.push(eliminated);
+  G.alive = G.alive.filter(p => p !== eliminated);
+  saveGameState();
+  showEliminationScreen(eliminated, G.roles[eliminated]);
+}
+
+/* ── STATUS LIST ── */
+function renderStatusList() {
+  const roleNames = { mr_white: 'Mr. White', undercover: 'Undercover', civil: 'Civil' };
+  document.getElementById('status-list').innerHTML = `
+    <div class="card" style="margin-bottom:4px;">
+      <h3>Vivants (${G.alive.length})</h3>
+      <div class="gap">` +
+    G.alive.map((p, i) => `
+      <div class="player-row">
+        <span class="alive-dot"></span>
+        <div class="avatar" style="width:32px;height:32px;font-size:13px;background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p[0]}</div>
+        <span style="flex:1;font-size:14px;">${escHtml(p)}</span>
+        ${G.devicePlayers.includes(p) ? '<span class="tag tag-blue" style="font-size:10px;">Vous</span>' : ''}
+      </div>`).join('') + `</div></div>` +
+    (G.eliminated.length ? `
+    <div class="card">
+      <h3>Éliminés (${G.eliminated.length})</h3>
+      <div class="gap">` +
+    G.eliminated.map(p => `
+      <div class="player-row" style="opacity:.45;">
+        <span class="dead-dot"></span>
+        <span style="flex:1;font-size:14px;text-decoration:line-through;">${escHtml(p)}</span>
+        <span class="small">${roleNames[G.roles[p]]}</span>
+      </div>`).join('') + `</div></div>` : '');
+}
+
+/* ─────────────────────────────────────
+   ELIMINATION SCREEN
+───────────────────────────────────── */
+function showEliminationScreen(name, role) {
+  showScreen('s-elim');
+  const roleNames  = { mr_white: 'MR. WHITE', undercover: 'UNDERCOVER', civil: 'CIVIL' };
+  const roleColors = { mr_white: 'var(--red2)',   undercover: 'var(--amber2)', civil: 'var(--green2)' };
+  const roleBg     = { mr_white: 'rgba(232,69,69,.15)', undercover: 'rgba(240,160,48,.15)', civil: 'rgba(69,201,138,.15)' };
+  const roleBorder = { mr_white: 'var(--red)',   undercover: 'var(--amber)',  civil: 'var(--green)' };
+  const emoji      = { mr_white: '🕵️', undercover: '🥸', civil: '👥' };
+
+  document.getElementById('elim-icon').textContent = emoji[role];
+  document.getElementById('elim-title').textContent = `${name} est éliminé !`;
+  document.getElementById('elim-role-badge').innerHTML = `
+    <div class="role-badge"
+         style="background:${roleBg[role]};color:${roleColors[role]};border:2px solid ${roleBorder[role]};">
+      ${roleNames[role]}
+    </div>`;
+
+  const isMW = role === 'mr_white';
+  document.getElementById('mrwhite-guess-panel').style.display = isMW ? 'block' : 'none';
+  
+  // Bouton continuer visible UNIQUEMENT pour l'admin
+  const continueBtn = document.getElementById('elim-continue-btn');
+  continueBtn.style.display = (isMW || !G.isAdmin) ? 'none' : 'block';
+
+  // Message pour non-admin et admin
+  if (!isMW && !G.isAdmin) {
+    document.getElementById('elim-msg').innerHTML = `
+      <div style="text-align:center;">
+        <div style="font-size:12px;color:var(--text2);margin-top:12px;">En attente de l'admin...</div>
+      </div>`;
+  } else if (!isMW && G.isAdmin) {
+    // L'admin ne voit pas le mot civil non plus après élimination d'un civil
+    document.getElementById('elim-msg').textContent = `Le joueur était civil. La partie continue...`;
+  } else {
+    document.getElementById('elim-msg').textContent = 'Vous pouvez encore gagner en devinant le mot des Civils !';
+  }
+}
+
+function submitMrWhiteGuess() {
+  const guess = document.getElementById('mw-guess-input').value.trim();
+  if (!guess) return toast('Entrez votre réponse');
+  if (guess.toLowerCase() === G.words.civil.toLowerCase()) {
+    G.mrWhiteGuessed = true;
+    saveGameState();
+    endGame('mr_white', 'Mr. White a deviné le mot !');
+  } else {
+    toast('Mauvaise réponse ! Les civils gagnent.');
+    document.getElementById('mw-guess-input').value = '';
+    document.getElementById('mrwhite-guess-panel').style.display = 'none';
+    document.getElementById('elim-continue-btn').style.display   = 'block';
+    document.getElementById('elim-msg').textContent =
+      `Mauvaise réponse. Le mot était : "${G.words.civil}"`;
+    saveGameState();
+  }
+}
+
+function continueAfterElim() {
+  // Seul l'admin peut continuer
+  if (!G.isAdmin) {
+    toast('Seul l\'admin peut continuer');
+    return;
+  }
+  G.round++;
+  const result = checkWin();
+  if (result) { endGame(result.winner, result.msg); return; }
+  updateGameUI();
+  saveGameState();
+  showScreen('s-game');
+  if (G.isAdmin) {
+    gameTab('discuss');
+  } else {
+    gameTab('status');
+  }
+}
+
+/* ─────────────────────────────────────
+   WIN CONDITION
+───────────────────────────────────── */
+function checkWin() {
+  const alive   = G.alive;
+  const mrAlive = alive.filter(p => G.roles[p] === 'mr_white');
+  const ucAlive = alive.filter(p => G.roles[p] === 'undercover');
+  const cvAlive = alive.filter(p => G.roles[p] === 'civil');
+
+  if (mrAlive.length === 0 && ucAlive.length === 0)
+    return { winner: 'civil', msg: 'Tous les imposteurs ont été éliminés !' };
+  if (mrAlive.length > 0 && alive.length <= 2)
+    return { winner: 'mr_white', msg: 'Mr. White a survécu jusqu\'à la fin !' };
+  if (ucAlive.length > 0 && cvAlive.length === 0)
+    return { winner: 'undercover', msg: 'L\'Undercover a éliminé tous les Civils !' };
+  if (ucAlive.length > 0 && alive.length <= 2)
+    return { winner: 'undercover', msg: 'L\'Undercover a survécu jusqu\'à la fin !' };
+  return null;
+}
+
+/* ─────────────────────────────────────
+   CALCULATE SCORES
+───────────────────────────────────── */
+function calculateScores(winner) {
+  // Points par rôle en fonction du résultat
+  const scoreMap = {
+    'civil': { win: 10, loss: 3 },
+    'undercover': { win: 15, loss: 4 },
+    'mr_white': { win: 20, loss: 5 }
+  };
+  
+  // Attribution des points
+  G.allPlayers.forEach(player => {
+    const role = G.roles[player];
+    const roleWon = (winner === 'civil' && role === 'civil') ||
+                    (winner === 'undercover' && role === 'undercover') ||
+                    (winner === 'mr_white' && role === 'mr_white');
+    
+    // Points de base
+    let points = scoreMap[role][roleWon ? 'win' : 'loss'];
+    
+    // Bonus si le joueur a survécu jusqu'à la fin
+    if (G.alive.includes(player)) {
+      points += roleWon ? 5 : 0;
+    }
+    
+    // Bonus spécial pour Mr. White s'il a deviné
+    if (player === G.allPlayers.find(p => G.roles[p] === 'mr_white' && G.mrWhiteGuessed)) {
+      points += 10;
+    }
+    
+    // AJOUTER aux scores existants (cumulatif)
+    G.scores[player] = (G.scores[player] || 0) + points;
+  });
+  
+  // Sauvegarder les scores cumulatifs
+  savePlayerScores();
+}
+
+function savePlayerScores() {
+  // Sauvegarder les scores cumulatifs pour les joueurs de cet appareil
+  G.devicePlayers.forEach(player => {
+    const score = G.scores[player] || 0;
+    localStorage.setItem('mrw_score_' + player, score);
+  });
+}
+
+function loadPlayerScores() {
+  // Charger les scores cumulatifs pour chaque joueur
+  const scores = {};
+  G.allPlayers.forEach(player => {
+    const saved = localStorage.getItem('mrw_score_' + player);
+    scores[player] = saved ? parseInt(saved) : 0;
+  });
+  return scores;
+}
+
+/* ─────────────────────────────────────
+   END GAME
+───────────────────────────────────── */
+function endGame(winner, msg) {
+  calculateScores(winner);
+  
+  showScreen('s-end');
+  const icons  = { mr_white: '🕵️', undercover: '🥸', civil: '🏆' };
+  const teams  = { mr_white: 'MR. WHITE GAGNE !', undercover: 'UNDERCOVER GAGNE !', civil: 'LES CIVILS GAGNENT !' };
+  const colors = { mr_white: 'var(--red)', undercover: 'var(--amber)', civil: 'var(--green)' };
+  const tags   = { mr_white: 'tag-red', undercover: 'tag-amber', civil: 'tag-green' };
+  const roleNames = { mr_white: 'Mr. White', undercover: 'Undercover', civil: 'Civil' };
+
+  document.getElementById('end-icon').textContent  = icons[winner];
+  document.getElementById('end-title').style.color = colors[winner];
+  document.getElementById('end-team').textContent  = teams[winner];
+  document.getElementById('end-team').style.color  = colors[winner];
+
+  // Trier les joueurs par score décroissant
+  const sortedPlayers = [...G.allPlayers].sort((a, b) => (G.scores[b] || 0) - (G.scores[a] || 0));
+
+  document.getElementById('end-reveal').innerHTML = `
+    <div class="card">
+      <h3>Révélation complète</h3>
+      <div class="small" style="margin-bottom:12px;">Mot Civils : <b style="color:var(--green2)">${escHtml(G.words.civil)}</b>  ·  Mot Undercover : <b style="color:var(--amber2)">${escHtml(G.words.uc)}</b></div>
+      <div class="gap" style="margin-bottom:16px;">` +
+    sortedPlayers.map((p, idx) => {
+      const r = G.roles[p];
+      const elim = G.eliminated.includes(p);
+      const score = G.scores[p] || 0;
+      return `<div class="player-row" style="${elim ? 'opacity:.65;' : ''}">
+        <div class="avatar" style="background:${getAvatarBg(idx)};color:${getAvatarColor(idx)};${elim?'filter:grayscale(1);':''}">${p[0].toUpperCase()}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;${elim?'text-decoration:line-through;color:var(--text2);':''}">
+            ${escHtml(p)}
+          </div>
+          <div class="small" style="color:var(--text2);">${roleNames[r]}</div>
+        </div>
+        <span class="tag ${tags[r]}" style="margin-right:8px;">${roleNames[r]}</span>
+        <div style="font-size:18px;font-weight:700;color:var(--amber2);min-width:40px;text-align:right;">${score} pts</div>
+      </div>`;
+    }).join('') + `</div></div>
+    
+    <div class="card">
+      <h3>🏆 Classement</h3>
+      <div class="gap">` +
+    sortedPlayers.map((p, idx) => {
+      const score = G.scores[p] || 0;
+      const medals = ['🥇', '🥈', '🥉'];
+      const medal = idx < 3 ? medals[idx] : '   ';
+      return `<div class="player-row">
+        <div style="font-size:24px;width:40px;text-align:center;">${medal}</div>
+        <span style="flex:1;font-size:14px;font-weight:500;">${escHtml(p)}</span>
+        <div style="font-size:16px;font-weight:700;color:var(--amber2);">${score}</div>
+      </div>`;
+    }).join('') + `</div></div>`;
+
+  if (G.roomCode) clearRoom(G.roomCode);
+  localStorage.removeItem('mrw_currentRoom');
+  if (pollInterval) clearInterval(pollInterval);
+}
+
+/* ─────────────────────────────────────
+   NEW GAME / LEAVE
+───────────────────────────────────── */
+function newGame() {
+  G = {
+    roomCode:'',isAdmin:false,devicePlayers:[],allPlayers:[],
+    roles:{},words:{civil:'',uc:''},alive:[],eliminated:[],
+    round:1,phase:'discuss',votes:{},currentRevealIdx:0,
+    mrWhiteGuessed:false,mrCounts:{mr:1,uc:1},scores:{},
+  };
+  extraPlayers = []; joinPlayers = [];
+  localStorage.removeItem('mrw_currentRoom');
+  if (pollInterval) clearInterval(pollInterval);
+  showScreen('s-home');
+}
+
+function confirmLeave() {
+  document.getElementById('overlay-leave').classList.remove('hidden');
+}
+function leaveGame() {
+  if (G.roomCode) {
+    const rd = loadRoom(G.roomCode);
+    if (rd) {
+      if (G.isAdmin) {
+        clearRoom(G.roomCode);
+      } else {
+        rd.players = rd.players.filter(p => !G.devicePlayers.includes(p.name));
+        saveRoom(rd);
+      }
+    }
+  }
+  localStorage.removeItem('mrw_currentRoom');
+  closeOverlay('overlay-leave');
+  newGame();
+}
+
+/* ─────────────────────────────────────
+   UTILS
+───────────────────────────────────── */
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return escHtml(s); }
+function safeId(s)  { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
+</script>
+</body>
+</html>
