@@ -178,7 +178,7 @@ select option{background:var(--card2);}
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div><span class="tag tag-red">Mr. White</span> <span class="small" style="margin-left:6px;">Survive jusqu'à 2 joueurs restants, ou devine le mot si éliminé</span></div>
         <div><span class="tag tag-amber">Undercover</span> <span class="small" style="margin-left:6px;">Élimine tous les civils ou survit jusqu'à 2 joueurs</span></div>
-        <div><span class="tag tag-green">Civils</span> <span class="small" style="margin-left:6px;">Éliminent tous les Mr. White et Undercov er</span></div>
+        <div><span class="tag tag-green">Civils</span> <span class="small" style="margin-left:6px;">Éliminent tous les Mr. White et Undercover</span></div>
       </div>
     </div>
     <div class="card">
@@ -392,6 +392,8 @@ select option{background:var(--card2);}
     <div id="panel-status" style="display:none;" class="fade-in">
       <div id="status-list" class="gap"></div>
     </div>
+
+    <button class="btn btn-ghost" style="margin-top:16px;" onclick="confirmLeave()">❌ Quitter la partie</button>
   </div>
 </div>
 
@@ -432,7 +434,8 @@ select option{background:var(--card2);}
     <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:24px;"
          id="end-team"></div>
     <div id="end-reveal" class="gap" style="width:100%;margin-bottom:24px;"></div>
-    <button class="btn btn-primary" onclick="newGame()">🔄 Rejouer</button>
+    <button class="btn btn-primary" id="btn-rematch" onclick="rematch()">🔄 Rejouer (mêmes joueurs)</button>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="newGame()">🆕 Nouvelle partie</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="showScreen('s-home')">
       🏠 Menu principal
     </button>
@@ -483,12 +486,16 @@ let G = {
   roles: {},              // { nom: 'civil'|'undercover'|'mr_white' }
   words: { civil: '', uc: '' },
   alive: [], eliminated: [],
+  turnOrder: [],          // ordre des joueurs pour les tours de parole
+  currentTurnIndex: 0,    // index du joueur actuel
   round: 1, phase: 'discuss',
   votes: {},
   currentRevealIdx: 0,
   mrWhiteGuessed: false,
   mrCounts: { mr: 1, uc: 1 },
   scores: {},             // { nom: points }
+  revealPhaseCompleted: false,
+  rematchPlayers: [],     // joueurs pour le rematch
 };
 
 let extraPlayers = [];   // joueurs extra sur l'appareil admin
@@ -497,6 +504,9 @@ let pollInterval = null;
 
 // Vérifier si une partie était en cours et la restaurer
 window.addEventListener('load', function() {
+  // Charger les scores cumulatifs depuis le localStorage
+  loadAllScoresFromStorage();
+  
   // Récupérer le code de salle sauvegardé
   const savedCode = localStorage.getItem('mrw_currentRoom');
   if (savedCode) {
@@ -508,18 +518,14 @@ window.addEventListener('load', function() {
       G.devicePlayers = JSON.parse(localStorage.getItem('mrw_devicePlayers') || '[]');
       applyGameState(rd);
       
-      // Afficher l'écran du jeu
-      if (G.eliminated.length > 0 || G.round > 1 || G.alive.length < G.allPlayers.length) {
-        showScreen('s-game');
-        if (G.isAdmin) {
-          gameTab('discuss');
-        } else {
-          gameTab('status');
-        }
-        updateGameUI();
+      // Restaurer directement à la page de discussion
+      showScreen('s-game');
+      if (G.isAdmin) {
+        gameTab('discuss');
       } else {
-        startRevealPhase();
+        gameTab('status');
       }
+      updateGameUI();
       startPolling();
     }
   }
@@ -564,7 +570,7 @@ const getAvatarBg    = i => AVATAR_BG[i % AVATAR_BG.length];
 const getAvatarColor = i => AVATAR_COLOR[i % AVATAR_COLOR.length];
 
 /* ─────────────────────────────────────
-   COUNTER BUTTONS (Mr. White / Undercover count)
+   COUNTER BUTTONS
 ───────────────────────────────────── */
 function adj(type, delta) {
   const el = document.getElementById('cnt-' + type);
@@ -625,26 +631,7 @@ function renderJoinPlayers() {
 }
 
 /* ─────────────────────────────────────
-   RANDOM WORDS
-───────────────────────────────────── */
-function randomWords() {
-  const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
-  document.getElementById('word-civil').value = pair[0];
-  document.getElementById('word-uc').value    = pair[1];
-  toast('Mots générés : ' + pair[0] + ' / ' + pair[1]);
-}
-
-/* ─────────────────────────────────────
    LOCAL STORAGE — Room persistence
-   (same device = instant; cross-device
-    on same network via shared localStorage
-    is not possible — players on separate
-    devices use the polling mechanism via
-    a shared key stored on the admin device
-    when using the same browser/profile,
-    or they can use a LAN server.
-    For full cross-device: host this file
-    on a server with a real backend.)
 ───────────────────────────────────── */
 function genCode() {
   return Math.random().toString(36).substr(2, 4).toUpperCase();
@@ -668,23 +655,16 @@ function saveGameState() {
       roles: G.roles,
       alive: G.alive,
       eliminated: G.eliminated,
+      turnOrder: G.turnOrder,
+      currentTurnIndex: G.currentTurnIndex,
       round: G.round,
       phase: G.phase,
       votes: G.votes,
       scores: G.scores,
+      revealPhaseCompleted: G.revealPhaseCompleted,
     };
     saveRoom(rd);
   }
-}
-
-function restoreGameState() {
-  if (!G.roomCode) return;
-  const rd = loadRoom(G.roomCode);
-  if (rd && rd.gameState) {
-    applyGameState(rd);
-    return true;
-  }
-  return false;
 }
 
 /* ─────────────────────────────────────
@@ -708,6 +688,9 @@ function createGame() {
   G.devicePlayers= [adminName, ...extraPlayers];
   G.words        = { civil: wc, uc: wu };
   G.mrCounts     = { mr: mrN, uc: ucN };
+  
+  // Charger les scores existants
+  loadAllScoresFromStorage();
 
   const roomData = {
     code,
@@ -793,6 +776,9 @@ function joinGame() {
   G.devicePlayers = [...joinPlayers];
   G.words         = rd.words;
   G.mrCounts      = rd.mrCounts;
+  
+  // Charger les scores existants
+  loadAllScoresFromStorage();
 
   const devId = genCode();
   rd.players.push(...joinPlayers.map(n => ({ name: n, device: devId })));
@@ -842,7 +828,7 @@ function startPolling() {
 }
 
 /* ─────────────────────────────────────
-   ROLE ASSIGNMENT
+   ROLE ASSIGNMENT & TURN ORDER
 ───────────────────────────────────── */
 function assignRoles(players, mrCount, ucCount) {
   const shuffled = [...players].sort(() => Math.random() - .5);
@@ -855,6 +841,21 @@ function assignRoles(players, mrCount, ucCount) {
   return roles;
 }
 
+function generateTurnOrder(players, roles) {
+  let order = [...players].sort(() => Math.random() - .5);
+  const mrWhitePlayer = Object.keys(roles).find(p => roles[p] === 'mr_white');
+  if (!mrWhitePlayer) return order;
+  const mrWhiteIndex = order.indexOf(mrWhitePlayer);
+  if (mrWhiteIndex < 3) {
+    order.splice(mrWhiteIndex, 1);
+    const minPos = Math.min(3, order.length);
+    const maxPos = order.length;
+    const newPos = minPos + Math.floor(Math.random() * (maxPos - minPos + 1));
+    order.splice(newPos, 0, mrWhitePlayer);
+  }
+  return order;
+}
+
 /* ─────────────────────────────────────
    START GAME (admin triggers)
 ───────────────────────────────────── */
@@ -864,27 +865,39 @@ function startGame() {
 
   const players = rd.players.map(p => p.name);
   const roles   = assignRoles(players, rd.mrCounts.mr, rd.mrCounts.uc);
+  const turnOrder = generateTurnOrder(players, roles);
 
   rd.status    = 'started';
   rd.gameState = {
     roles,
     alive:      [...players],
     eliminated: [],
+    turnOrder,
+    currentTurnIndex: 0,
     round:      1,
     phase:      'discuss',
     votes:      {},
+    scores:     G.scores,
   };
   saveRoom(rd);
   clearInterval(pollInterval);
 
+  G.revealPhaseCompleted = false;
   applyGameState(rd);
+  
+  // Sauvegarder la liste des joueurs pour le rematch
+  G.rematchPlayers = [...players];
+  
   startRevealPhase();
 }
 
-/* Load state from storage (non-admin devices) */
 function loadAndStart(rd) {
   applyGameState(rd);
-  startRevealPhase();
+  if (G.revealPhaseCompleted) {
+    showGameScreen();
+  } else {
+    startRevealPhase();
+  }
 }
 
 function applyGameState(rd) {
@@ -893,20 +906,57 @@ function applyGameState(rd) {
   G.roles      = gs.roles;
   G.alive      = [...gs.alive];
   G.eliminated = [...gs.eliminated];
+  G.turnOrder  = gs.turnOrder || [];
+  G.currentTurnIndex = gs.currentTurnIndex || 0;
   G.round      = gs.round;
   G.phase      = gs.phase;
   G.votes      = gs.votes || {};
   G.words      = rd.words;
   G.mrCounts   = rd.mrCounts;
-  G.scores     = gs.scores || {};
+  G.scores     = { ...loadPlayerScores(), ...(gs.scores || {}) };
+  G.revealPhaseCompleted = gs.revealPhaseCompleted || false;
+  G.rematchPlayers = [...G.allPlayers];
 }
 
 /* ─────────────────────────────────────
-   REVEAL PHASE (private, per device)
+   SCORE MANAGEMENT
+───────────────────────────────────── */
+function loadAllScoresFromStorage() {
+  const allKeys = Object.keys(localStorage);
+  allKeys.forEach(key => {
+    if (key.startsWith('mrw_score_')) {
+      const playerName = key.replace('mrw_score_', '');
+      const score = parseInt(localStorage.getItem(key)) || 0;
+      if (score > 0) {
+        G.scores[playerName] = score;
+      }
+    }
+  });
+}
+
+function loadPlayerScores() {
+  const scores = {};
+  G.allPlayers.forEach(player => {
+    const saved = localStorage.getItem('mrw_score_' + player);
+    scores[player] = saved ? parseInt(saved) : 0;
+  });
+  return scores;
+}
+
+function savePlayerScores() {
+  Object.keys(G.scores).forEach(player => {
+    const score = G.scores[player];
+    if (score > 0) {
+      localStorage.setItem('mrw_score_' + player, score.toString());
+    }
+  });
+}
+
+/* ─────────────────────────────────────
+   REVEAL PHASE
 ───────────────────────────────────── */
 function startRevealPhase() {
-  // Charger les scores cumulatifs au démarrage de la partie
-  G.scores = loadPlayerScores();
+  loadAllScoresFromStorage();
   G.currentRevealIdx = 0;
   saveGameState();
   showNextReveal();
@@ -925,8 +975,6 @@ function showNextReveal() {
   const role = G.roles[name];
   const content = document.getElementById('reveal-content');
   
-  // SEUL Mr. White doit connaître son rôle au départ
-  // Les Civil/Undercover reçoivent juste leur mot et doivent découvrir par eux-mêmes
   if (role === 'mr_white') {
     content.innerHTML = `
       <div class="role-reveal fade-in">
@@ -944,7 +992,6 @@ function showNextReveal() {
         <button class="btn btn-primary" onclick="nextReveal()">J'ai compris →</button>
       </div>`;
   } else {
-    // Civil ET Undercover : reçoivent JUSTE le mot, pas le rôle
     const word = role === 'civil' ? G.words.civil : G.words.uc;
     content.innerHTML = `
       <div class="role-reveal fade-in">
@@ -974,6 +1021,8 @@ function nextReveal() {
         <button class="btn btn-primary" onclick="showNextReveal()">Prêt →</button>
       </div>`;
   } else {
+    G.revealPhaseCompleted = true;
+    saveGameState();
     showGameScreen();
   }
 }
@@ -983,7 +1032,6 @@ function nextReveal() {
 ───────────────────────────────────── */
 function showGameScreen() {
   showScreen('s-game');
-  // Admin voit la discussion, non-admin voit le statut
   if (G.isAdmin) {
     gameTab('discuss');
   } else {
@@ -1000,7 +1048,6 @@ function updateGameUI() {
   if (dead > 0) { deadEl.textContent = dead + ' éliminés'; deadEl.style.display = ''; }
   else deadEl.style.display = 'none';
 
-  // Afficher l'onglet Vote UNIQUEMENT pour l'admin
   const tabVote = document.getElementById('tab-vote');
   if (G.isAdmin) {
     tabVote.style.display = 'block';
@@ -1008,7 +1055,6 @@ function updateGameUI() {
     tabVote.onclick = function() { gameTab('vote'); };
   } else {
     tabVote.style.display = 'none';
-    // Les non-admin voient toujours le status
     gameTab('status');
   }
 
@@ -1019,16 +1065,21 @@ function updateGameUI() {
 }
 
 function renderTurnOrder() {
-  document.getElementById('turn-order').innerHTML =
-    G.alive.map((p, i) => {
-      const mine = G.devicePlayers.includes(p);
-      return `<div style="padding:4px 10px;border-radius:20px;font-size:12px;
-        font-weight:${mine ? '700' : '400'};
-        background:${mine ? 'rgba(232,69,69,.15)' : 'var(--card2)'};
-        color:${mine ? 'var(--red2)' : 'var(--text2)'};
-        border:1px solid ${mine ? 'rgba(232,69,69,.3)' : 'var(--border)'};">
-        ${i + 1}. ${escHtml(p)}</div>`;
-    }).join('');
+  const aliveInOrder = G.turnOrder.filter(p => G.alive.includes(p));
+  const rotatedOrder = [
+    ...aliveInOrder.slice(G.currentTurnIndex),
+    ...aliveInOrder.slice(0, G.currentTurnIndex)
+  ];
+  
+  document.getElementById('turn-order').innerHTML = rotatedOrder.map((p, i) => {
+    const isNext = i === 0;
+    return `<div style="padding:4px 10px;border-radius:20px;font-size:12px;
+      font-weight:${isNext ? '700' : '400'};
+      background:${isNext ? 'rgba(232,69,69,.15)' : 'var(--card2)'};
+      color:${isNext ? 'var(--red2)' : 'var(--text2)'};
+      border:1px solid ${isNext ? 'rgba(232,69,69,.3)' : 'var(--border)'};">
+      ${i + 1}. ${escHtml(p)} ${isNext ? '👈 PARLE' : ''}</div>`;
+  }).join('');
 }
 
 function renderDevicePanel() {
@@ -1038,8 +1089,6 @@ function renderDevicePanel() {
 
   el.innerHTML = `<div class="card"><h3>Vos joueurs actifs</h3><div class="gap">` +
     aliveOnDevice.map(p => {
-      // NE PAS afficher le rôle ou le mot - seulement le nom du joueur
-      // Les joueurs doivent découvrir par eux-mêmes leur rôle en écoutant les autres
       return `<div class="player-row">
         <div class="avatar" style="background:rgba(74,158,255,.15);color:var(--blue2)">${p[0].toUpperCase()}</div>
         <div style="flex:1;font-size:14px;font-weight:500;">${escHtml(p)}</div>
@@ -1064,7 +1113,6 @@ function renderVoteGrid() {
   const grid = document.getElementById('vote-grid');
   
   if (!G.isAdmin) {
-    // Non-admin : voir juste les statuts sans pouvoir voter
     grid.innerHTML = `
       <div style="grid-column:1/-1;padding:16px;text-align:center;color:var(--text2);">
         <div style="font-size:18px;margin-bottom:8px;">⏳</div>
@@ -1080,7 +1128,6 @@ function renderVoteGrid() {
     return;
   }
   
-  // Admin : grille de vote complète
   grid.innerHTML =
     G.alive.map(p => `
       <div class="vote-card" id="vc-${safeId(p)}" onclick="castVote('${escAttr(p)}')">
@@ -1157,18 +1204,15 @@ function showEliminationScreen(name, role) {
   const isMW = role === 'mr_white';
   document.getElementById('mrwhite-guess-panel').style.display = isMW ? 'block' : 'none';
   
-  // Bouton continuer visible UNIQUEMENT pour l'admin
   const continueBtn = document.getElementById('elim-continue-btn');
   continueBtn.style.display = (isMW || !G.isAdmin) ? 'none' : 'block';
 
-  // Message pour non-admin et admin
   if (!isMW && !G.isAdmin) {
     document.getElementById('elim-msg').innerHTML = `
       <div style="text-align:center;">
         <div style="font-size:12px;color:var(--text2);margin-top:12px;">En attente de l'admin...</div>
       </div>`;
   } else if (!isMW && G.isAdmin) {
-    // L'admin ne voit pas le mot civil non plus après élimination d'un civil
     document.getElementById('elim-msg').textContent = `Le joueur était civil. La partie continue...`;
   } else {
     document.getElementById('elim-msg').textContent = 'Vous pouvez encore gagner en devinant le mot des Civils !';
@@ -1194,7 +1238,6 @@ function submitMrWhiteGuess() {
 }
 
 function continueAfterElim() {
-  // Seul l'admin peut continuer
   if (!G.isAdmin) {
     toast('Seul l\'admin peut continuer');
     return;
@@ -1202,6 +1245,12 @@ function continueAfterElim() {
   G.round++;
   const result = checkWin();
   if (result) { endGame(result.winner, result.msg); return; }
+  
+  const aliveInOrder = G.turnOrder.filter(p => G.alive.includes(p));
+  if (aliveInOrder.length > 0) {
+    G.currentTurnIndex = (G.currentTurnIndex + 1) % aliveInOrder.length;
+  }
+  
   updateGameUI();
   saveGameState();
   showScreen('s-game');
@@ -1236,57 +1285,32 @@ function checkWin() {
    CALCULATE SCORES
 ───────────────────────────────────── */
 function calculateScores(winner) {
-  // Points par rôle en fonction du résultat
   const scoreMap = {
     'civil': { win: 10, loss: 3 },
     'undercover': { win: 15, loss: 4 },
     'mr_white': { win: 20, loss: 5 }
   };
   
-  // Attribution des points
   G.allPlayers.forEach(player => {
     const role = G.roles[player];
     const roleWon = (winner === 'civil' && role === 'civil') ||
                     (winner === 'undercover' && role === 'undercover') ||
                     (winner === 'mr_white' && role === 'mr_white');
     
-    // Points de base
     let points = scoreMap[role][roleWon ? 'win' : 'loss'];
     
-    // Bonus si le joueur a survécu jusqu'à la fin
     if (G.alive.includes(player)) {
       points += roleWon ? 5 : 0;
     }
     
-    // Bonus spécial pour Mr. White s'il a deviné
     if (player === G.allPlayers.find(p => G.roles[p] === 'mr_white' && G.mrWhiteGuessed)) {
       points += 10;
     }
     
-    // AJOUTER aux scores existants (cumulatif)
     G.scores[player] = (G.scores[player] || 0) + points;
   });
   
-  // Sauvegarder les scores cumulatifs
   savePlayerScores();
-}
-
-function savePlayerScores() {
-  // Sauvegarder les scores cumulatifs pour les joueurs de cet appareil
-  G.devicePlayers.forEach(player => {
-    const score = G.scores[player] || 0;
-    localStorage.setItem('mrw_score_' + player, score);
-  });
-}
-
-function loadPlayerScores() {
-  // Charger les scores cumulatifs pour chaque joueur
-  const scores = {};
-  G.allPlayers.forEach(player => {
-    const saved = localStorage.getItem('mrw_score_' + player);
-    scores[player] = saved ? parseInt(saved) : 0;
-  });
-  return scores;
 }
 
 /* ─────────────────────────────────────
@@ -1307,7 +1331,6 @@ function endGame(winner, msg) {
   document.getElementById('end-team').textContent  = teams[winner];
   document.getElementById('end-team').style.color  = colors[winner];
 
-  // Trier les joueurs par score décroissant
   const sortedPlayers = [...G.allPlayers].sort((a, b) => (G.scores[b] || 0) - (G.scores[a] || 0));
 
   document.getElementById('end-reveal').innerHTML = `
@@ -1346,20 +1369,113 @@ function endGame(winner, msg) {
       </div>`;
     }).join('') + `</div></div>`;
 
+  // Afficher le bouton rematch seulement pour l'admin
+  const rematchBtn = document.getElementById('btn-rematch');
+  if (G.isAdmin) {
+    rematchBtn.style.display = 'block';
+  } else {
+    rematchBtn.style.display = 'none';
+  }
+
   if (G.roomCode) clearRoom(G.roomCode);
   localStorage.removeItem('mrw_currentRoom');
   if (pollInterval) clearInterval(pollInterval);
 }
 
 /* ─────────────────────────────────────
-   NEW GAME / LEAVE
+   REMATCH - Rejouer avec les mêmes joueurs
+───────────────────────────────────── */
+function rematch() {
+  // Garder les scores
+  const savedScores = { ...G.scores };
+  // Garder la liste des joueurs
+  const players = [...G.rematchPlayers];
+  // Garder les comptes Mr. White / Undercover
+  const mrCounts = { ...G.mrCounts };
+  
+  // Réinitialiser l'état du jeu MAIS garder les joueurs et les scores
+  G = {
+    roomCode: '',
+    isAdmin: true,
+    devicePlayers: [...G.devicePlayers],
+    allPlayers: [...players],
+    roles: {},
+    words: { civil: '', uc: '' },
+    alive: [],
+    eliminated: [],
+    turnOrder: [],
+    currentTurnIndex: 0,
+    round: 1,
+    phase: 'discuss',
+    votes: {},
+    currentRevealIdx: 0,
+    mrWhiteGuessed: false,
+    mrCounts: mrCounts,
+    scores: savedScores,
+    revealPhaseCompleted: false,
+    rematchPlayers: [...players],
+  };
+  
+  // Créer une nouvelle salle avec les mêmes joueurs
+  const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
+  const wc = pair[0];
+  const wu = pair[1];
+  
+  const code = genCode();
+  G.roomCode = code;
+  G.words = { civil: wc, uc: wu };
+  
+  // Tous les joueurs sont déjà là, pas besoin d'attendre
+  const roles = assignRoles(players, mrCounts.mr, mrCounts.uc);
+  const turnOrder = generateTurnOrder(players, roles);
+  
+  const roomData = {
+    code,
+    status: 'started',
+    adminName: G.devicePlayers[0],
+    players: players.map(n => ({ name: n, device: 'rematch' })),
+    words: { civil: wc, uc: wu },
+    mrCounts: mrCounts,
+    gameState: {
+      roles,
+      alive: [...players],
+      eliminated: [],
+      turnOrder,
+      currentTurnIndex: 0,
+      round: 1,
+      phase: 'discuss',
+      votes: {},
+      scores: savedScores,
+      revealPhaseCompleted: false,
+    },
+  };
+  
+  saveRoom(roomData);
+  setCurrentRoom(code, true, G.devicePlayers);
+  
+  G.roles = roles;
+  G.alive = [...players];
+  G.turnOrder = turnOrder;
+  
+  // Démarrer directement la phase de révélation
+  startRevealPhase();
+}
+
+/* ─────────────────────────────────────
+   NEW GAME
 ───────────────────────────────────── */
 function newGame() {
+  const savedScores = { ...G.scores };
+  
   G = {
     roomCode:'',isAdmin:false,devicePlayers:[],allPlayers:[],
     roles:{},words:{civil:'',uc:''},alive:[],eliminated:[],
+    turnOrder:[],currentTurnIndex:0,
     round:1,phase:'discuss',votes:{},currentRevealIdx:0,
-    mrWhiteGuessed:false,mrCounts:{mr:1,uc:1},scores:{},
+    mrWhiteGuessed:false,mrCounts:{mr:1,uc:1},
+    scores: savedScores,
+    revealPhaseCompleted:false,
+    rematchPlayers: [],
   };
   extraPlayers = []; joinPlayers = [];
   localStorage.removeItem('mrw_currentRoom');
