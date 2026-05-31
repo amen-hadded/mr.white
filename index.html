@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Mr. White — Le Jeu</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -133,7 +136,7 @@ select option{background:var(--card2);}
       <button class="btn btn-ghost" onclick="showScreen('s-rules')">📖 Règles du jeu</button>
     </div>
   </div>
-  <div style="text-align:center;padding:16px;" class="small">Jusqu'à 20 joueurs · Multi-appareils · Hors-ligne</div>
+  <div style="text-align:center;padding:16px;" class="small">Jusqu'à 20 joueurs · Multi-appareils · En ligne</div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -271,8 +274,6 @@ select option{background:var(--card2);}
     </div>
     <div class="flex-between" style="margin-bottom:8px;">
       <h3 style="margin-bottom:0;">Joueurs <span id="player-count" style="color:var(--red);">0</span></h3>
-      <button class="btn btn-ghost" onclick="refreshLobby()"
-              style="width:auto;padding:6px 14px;font-size:12px;">↺ Actualiser</button>
     </div>
     <div id="players-list" class="gap" style="margin-bottom:16px;"></div>
     <div id="lobby-warning" class="small"
@@ -321,9 +322,6 @@ select option{background:var(--card2);}
     <h2 style="text-align:center;margin-bottom:8px;">En attente...</h2>
     <div class="small" style="text-align:center;margin-bottom:24px;">L'admin va lancer la partie</div>
     <div id="waiting-players" class="gap" style="width:100%;max-width:340px;margin-bottom:20px;"></div>
-    <button class="btn btn-ghost" style="width:auto;padding:10px 24px;" onclick="refreshWaiting()">
-      ↺ Actualiser
-    </button>
   </div>
   <button class="btn btn-ghost" style="margin:16px;" onclick="confirmLeave()">Quitter</button>
 </div>
@@ -407,7 +405,6 @@ select option{background:var(--card2);}
     <div id="elim-role-badge" style="margin:12px 0;"></div>
     <div style="font-size:15px;color:var(--text2);margin-bottom:24px;" id="elim-msg"></div>
 
-    <!-- Mr. White guess panel -->
     <div id="mrwhite-guess-panel" style="width:100%;display:none;">
       <div class="card" style="margin-bottom:12px;text-align:left;">
         <div style="font-weight:600;margin-bottom:8px;color:var(--red2);">🎯 Dernière chance !</div>
@@ -464,7 +461,23 @@ select option{background:var(--card2);}
      JAVASCRIPT — GAME ENGINE
 ══════════════════════════════════════ -->
 <script>
-/* ── WORD PAIRS (civil / undercover) ── */
+// Configuration Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDB96dkzq-JPh1wt6GTZpaQ-RTOEznsv14",
+  authDomain: "mrwhite-cc12c.firebaseapp.com",
+  databaseURL: "https://mrwhite-cc12c-default-rtdb.firebaseio.com",
+  projectId: "mrwhite-cc12c",
+  storageBucket: "mrwhite-cc12c.firebasestorage.app",
+  messagingSenderId: "924666070258",
+  appId: "1:924666070258:web:d238f79d463c0e0def3c6b",
+  measurementId: "G-97NRY218D9"
+};
+
+// Initialiser Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ── WORD PAIRS ── */
 const WORD_PAIRS = [
   ["Plage","Mer"],["Pizza","Calzone"],["Lion","Tigre"],["Forêt","Jungle"],
   ["Chocolat","Caramel"],["Avion","Hélicoptère"],["Guitare","Violon"],
@@ -481,65 +494,27 @@ const WORD_PAIRS = [
 /* ── GLOBAL STATE ── */
 let G = {
   roomCode: '', isAdmin: false,
-  devicePlayers: [],      // joueurs sur CET appareil
-  allPlayers: [],         // tous les joueurs de la partie
-  roles: {},              // { nom: 'civil'|'undercover'|'mr_white' }
+  devicePlayers: [],
+  allPlayers: [],
+  roles: {},
   words: { civil: '', uc: '' },
   alive: [], eliminated: [],
-  turnOrder: [],          // ordre des joueurs pour les tours de parole
-  currentTurnIndex: 0,    // index du joueur actuel
+  turnOrder: [],
+  currentTurnIndex: 0,
   round: 1, phase: 'discuss',
   votes: {},
   currentRevealIdx: 0,
   mrWhiteGuessed: false,
   mrCounts: { mr: 1, uc: 1 },
-  scores: {},             // { nom: points }
+  scores: {},
   revealPhaseCompleted: false,
-  rematchPlayers: [],     // joueurs pour le rematch
+  rematchPlayers: [],
 };
 
-let extraPlayers = [];   // joueurs extra sur l'appareil admin
-let joinPlayers  = [];   // joueurs sur l'appareil qui rejoint
-let pollInterval = null;
-
-// Vérifier si une partie était en cours et la restaurer
-window.addEventListener('load', function() {
-  // Charger les scores cumulatifs depuis le localStorage
-  loadAllScoresFromStorage();
-  
-  // Récupérer le code de salle sauvegardé
-  const savedCode = localStorage.getItem('mrw_currentRoom');
-  if (savedCode) {
-    const rd = loadRoom(savedCode);
-    if (rd && rd.status === 'started' && rd.gameState) {
-      // Une partie était en cours, la restaurer
-      G.roomCode = savedCode;
-      G.isAdmin = localStorage.getItem('mrw_isAdmin') === 'true';
-      G.devicePlayers = JSON.parse(localStorage.getItem('mrw_devicePlayers') || '[]');
-      applyGameState(rd);
-      
-      // Restaurer directement à la page de discussion
-      showScreen('s-game');
-      if (G.isAdmin) {
-        gameTab('discuss');
-      } else {
-        gameTab('status');
-      }
-      updateGameUI();
-      startPolling();
-    }
-  }
-});
-
-// Sauvegarder le code de salle et infos actuels
-function setCurrentRoom(code, isAdmin, devicePlayers) {
-  G.roomCode = code;
-  G.isAdmin = isAdmin;
-  G.devicePlayers = devicePlayers;
-  localStorage.setItem('mrw_currentRoom', code);
-  localStorage.setItem('mrw_isAdmin', isAdmin.toString());
-  localStorage.setItem('mrw_devicePlayers', JSON.stringify(devicePlayers));
-}
+let extraPlayers = [];
+let joinPlayers  = [];
+let roomListener = null;
+let gameListener = null;
 
 /* ─────────────────────────────────────
    UI HELPERS
@@ -631,50 +606,51 @@ function renderJoinPlayers() {
 }
 
 /* ─────────────────────────────────────
-   LOCAL STORAGE — Room persistence
+   FIREBASE ROOM OPERATIONS
 ───────────────────────────────────── */
 function genCode() {
   return Math.random().toString(36).substr(2, 4).toUpperCase();
 }
-function saveRoom(data) {
-  localStorage.setItem('mrw_' + data.code, JSON.stringify(data));
-}
-function loadRoom(code) {
-  try { return JSON.parse(localStorage.getItem('mrw_' + code)); }
-  catch { return null; }
-}
-function clearRoom(code) {
-  localStorage.removeItem('mrw_' + code);
+
+async function saveRoomFB(data) {
+  try {
+    await db.ref('rooms/' + data.code).set(data);
+    // Auto-cleanup après 2 heures
+    setTimeout(() => {
+      db.ref('rooms/' + data.code).remove();
+    }, 7200000);
+    return true;
+  } catch(e) {
+    console.error('Erreur saveRoom:', e);
+    return false;
+  }
 }
 
-function saveGameState() {
-  if (!G.roomCode) return;
-  const rd = loadRoom(G.roomCode);
-  if (rd) {
-    rd.gameState = {
-      roles: G.roles,
-      alive: G.alive,
-      eliminated: G.eliminated,
-      turnOrder: G.turnOrder,
-      currentTurnIndex: G.currentTurnIndex,
-      round: G.round,
-      phase: G.phase,
-      votes: G.votes,
-      scores: G.scores,
-      revealPhaseCompleted: G.revealPhaseCompleted,
-    };
-    saveRoom(rd);
+async function loadRoomFB(code) {
+  try {
+    const snap = await db.ref('rooms/' + code).get();
+    return snap.val();
+  } catch(e) {
+    console.error('Erreur loadRoom:', e);
+    return null;
+  }
+}
+
+async function deleteRoomFB(code) {
+  try {
+    await db.ref('rooms/' + code).remove();
+  } catch(e) {
+    console.error('Erreur deleteRoom:', e);
   }
 }
 
 /* ─────────────────────────────────────
    CREATE GAME
 ───────────────────────────────────── */
-function createGame() {
+async function createGame() {
   const adminName = document.getElementById('admin-name').value.trim();
   if (!adminName) return toast('Entrez votre nom');
 
-  // Générer automatiquement et aléatoirement une paire de mots
   const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
   const wc = pair[0];
   const wu = pair[1];
@@ -689,7 +665,6 @@ function createGame() {
   G.words        = { civil: wc, uc: wu };
   G.mrCounts     = { mr: mrN, uc: ucN };
   
-  // Charger les scores existants
   loadAllScoresFromStorage();
 
   const roomData = {
@@ -700,12 +675,18 @@ function createGame() {
     words:   { civil: wc, uc: wu },
     mrCounts: { mr: mrN, uc: ucN },
     gameState: null,
+    createdAt: Date.now(),
   };
-  saveRoom(roomData);
-  setCurrentRoom(code, true, G.devicePlayers);
+  
+  const saved = await saveRoomFB(roomData);
+  if (!saved) {
+    toast('Erreur de connexion. Vérifiez votre internet.');
+    return;
+  }
+  
   extraPlayers = [];
   showLobby(roomData);
-  startPolling();
+  listenRoom();
 }
 
 /* ─────────────────────────────────────
@@ -718,12 +699,6 @@ function showLobby(rd) {
   updateLobbyPlayers(rd);
 }
 
-function refreshLobby() {
-  const rd = loadRoom(G.roomCode);
-  if (rd) updateLobbyPlayers(rd);
-  else toast('Salle introuvable');
-}
-
 function updateLobbyPlayers(rd) {
   const players = rd.players || [];
   document.getElementById('player-count').textContent = players.length;
@@ -733,7 +708,6 @@ function updateLobbyPlayers(rd) {
         <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p.name[0].toUpperCase()}</div>
         <div style="flex:1;">
           <div style="font-size:14px;font-weight:500;">${escHtml(p.name)}</div>
-          <div class="small">${p.device === 'admin' ? 'Appareil Admin' : 'Appareil ' + p.device.substring(0,6)}</div>
         </div>
         ${p.device === 'admin' ? '<span class="tag tag-red">Admin</span>' : ''}
       </div>`).join('');
@@ -753,15 +727,49 @@ function updateLobbyPlayers(rd) {
   }
 }
 
+function listenRoom() {
+  if (roomListener) roomListener();
+  roomListener = db.ref('rooms/' + G.roomCode).on('value', (snap) => {
+    const rd = snap.val();
+    if (!rd) {
+      if (roomListener) roomListener();
+      roomListener = null;
+      if (!G.revealPhaseCompleted) {
+        toast('La salle a été fermée');
+        newGame();
+      }
+      return;
+    }
+    
+    if (G.isAdmin) {
+      updateLobbyPlayers(rd);
+      if (rd.status === 'started' && !G.revealPhaseCompleted) {
+        if (roomListener) roomListener();
+        roomListener = null;
+        applyGameState(rd);
+        startRevealPhase();
+      }
+    } else {
+      renderWaitingPlayers(rd);
+      if (rd.status === 'started' && !G.revealPhaseCompleted) {
+        if (roomListener) roomListener();
+        roomListener = null;
+        applyGameState(rd);
+        startRevealPhase();
+      }
+    }
+  });
+}
+
 /* ─────────────────────────────────────
    JOIN GAME
 ───────────────────────────────────── */
-function joinGame() {
+async function joinGame() {
   const code = document.getElementById('join-code').value.trim().toUpperCase();
   if (code.length !== 4) return toast('Le code fait 4 caractères');
   if (joinPlayers.length === 0) return toast('Ajoutez au moins un joueur');
 
-  const rd = loadRoom(code);
+  const rd = await loadRoomFB(code);
   if (!rd) return toast('Salle introuvable ! Vérifiez le code.');
   if (rd.status === 'started') return toast('La partie a déjà commencé');
 
@@ -777,27 +785,22 @@ function joinGame() {
   G.words         = rd.words;
   G.mrCounts      = rd.mrCounts;
   
-  // Charger les scores existants
   loadAllScoresFromStorage();
 
   const devId = genCode();
   rd.players.push(...joinPlayers.map(n => ({ name: n, device: devId })));
-  saveRoom(rd);
-  setCurrentRoom(code, false, G.devicePlayers);
+  await saveRoomFB(rd);
   joinPlayers = [];
 
   showWaiting(rd);
-  startPolling();
+  listenRoom();
 }
 
 function showWaiting(rd) {
   showScreen('s-waiting');
   renderWaitingPlayers(rd);
 }
-function refreshWaiting() {
-  const rd = loadRoom(G.roomCode);
-  if (rd) renderWaitingPlayers(rd);
-}
+
 function renderWaitingPlayers(rd) {
   const players = rd.players || [];
   document.getElementById('waiting-players').innerHTML =
@@ -807,24 +810,6 @@ function renderWaitingPlayers(rd) {
         <span style="flex:1;font-size:14px;">${escHtml(p.name)}</span>
         ${G.devicePlayers.includes(p.name) ? '<span class="tag tag-blue">Vous</span>' : ''}
       </div>`).join('');
-}
-
-/* ─────────────────────────────────────
-   POLLING (checks every 1.2s)
-───────────────────────────────────── */
-function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(() => {
-    const rd = loadRoom(G.roomCode);
-    if (!rd) { clearInterval(pollInterval); return; }
-    if (G.isAdmin) {
-      updateLobbyPlayers(rd);
-      if (rd.status === 'started') { clearInterval(pollInterval); loadAndStart(rd); }
-    } else {
-      renderWaitingPlayers(rd);
-      if (rd.status === 'started') { clearInterval(pollInterval); loadAndStart(rd); }
-    }
-  }, 1200);
 }
 
 /* ─────────────────────────────────────
@@ -859,8 +844,8 @@ function generateTurnOrder(players, roles) {
 /* ─────────────────────────────────────
    START GAME (admin triggers)
 ───────────────────────────────────── */
-function startGame() {
-  const rd = loadRoom(G.roomCode);
+async function startGame() {
+  const rd = await loadRoomFB(G.roomCode);
   if (!rd) return toast('Erreur: salle introuvable');
 
   const players = rd.players.map(p => p.name);
@@ -879,29 +864,17 @@ function startGame() {
     votes:      {},
     scores:     G.scores,
   };
-  saveRoom(rd);
-  clearInterval(pollInterval);
-
+  
+  await saveRoomFB(rd);
   G.revealPhaseCompleted = false;
   applyGameState(rd);
-  
-  // Sauvegarder la liste des joueurs pour le rematch
   G.rematchPlayers = [...players];
-  
   startRevealPhase();
-}
-
-function loadAndStart(rd) {
-  applyGameState(rd);
-  if (G.revealPhaseCompleted) {
-    showGameScreen();
-  } else {
-    startRevealPhase();
-  }
 }
 
 function applyGameState(rd) {
   const gs = rd.gameState;
+  if (!gs) return;
   G.allPlayers = rd.players.map(p => p.name);
   G.roles      = gs.roles;
   G.alive      = [...gs.alive];
@@ -916,6 +889,26 @@ function applyGameState(rd) {
   G.scores     = { ...loadPlayerScores(), ...(gs.scores || {}) };
   G.revealPhaseCompleted = gs.revealPhaseCompleted || false;
   G.rematchPlayers = [...G.allPlayers];
+}
+
+async function saveGameStateToFB() {
+  if (!G.roomCode) return;
+  const rd = await loadRoomFB(G.roomCode);
+  if (rd) {
+    rd.gameState = {
+      roles: G.roles,
+      alive: G.alive,
+      eliminated: G.eliminated,
+      turnOrder: G.turnOrder,
+      currentTurnIndex: G.currentTurnIndex,
+      round: G.round,
+      phase: G.phase,
+      votes: G.votes,
+      scores: G.scores,
+      revealPhaseCompleted: G.revealPhaseCompleted,
+    };
+    await saveRoomFB(rd);
+  }
 }
 
 /* ─────────────────────────────────────
@@ -958,13 +951,17 @@ function savePlayerScores() {
 function startRevealPhase() {
   loadAllScoresFromStorage();
   G.currentRevealIdx = 0;
-  saveGameState();
   showNextReveal();
 }
 
 function showNextReveal() {
   const players = G.devicePlayers.filter(p => G.alive.includes(p));
-  if (G.currentRevealIdx >= players.length) { showGameScreen(); return; }
+  if (G.currentRevealIdx >= players.length) { 
+    G.revealPhaseCompleted = true;
+    saveGameStateToFB();
+    showGameScreen(); 
+    return; 
+  }
 
   showScreen('s-reveal-queue');
   const name  = players[G.currentRevealIdx];
@@ -1022,7 +1019,7 @@ function nextReveal() {
       </div>`;
   } else {
     G.revealPhaseCompleted = true;
-    saveGameState();
+    saveGameStateToFB();
     showGameScreen();
   }
 }
@@ -1097,7 +1094,6 @@ function renderDevicePanel() {
     }).join('') + `</div></div>`;
 }
 
-/* ── TABS ── */
 function gameTab(tab) {
   ['discuss', 'vote', 'status'].forEach(t => {
     document.getElementById('panel-' + t).style.display = t === tab ? 'block' : 'none';
@@ -1108,7 +1104,6 @@ function gameTab(tab) {
   if (tab === 'status') renderStatusList();
 }
 
-/* ── VOTE ── */
 function renderVoteGrid() {
   const grid = document.getElementById('vote-grid');
   
@@ -1152,11 +1147,10 @@ function processVotes() {
   const eliminated = selectedVote;
   G.eliminated.push(eliminated);
   G.alive = G.alive.filter(p => p !== eliminated);
-  saveGameState();
+  saveGameStateToFB();
   showEliminationScreen(eliminated, G.roles[eliminated]);
 }
 
-/* ── STATUS LIST ── */
 function renderStatusList() {
   const roleNames = { mr_white: 'Mr. White', undercover: 'Undercover', civil: 'Civil' };
   document.getElementById('status-list').innerHTML = `
@@ -1224,7 +1218,7 @@ function submitMrWhiteGuess() {
   if (!guess) return toast('Entrez votre réponse');
   if (guess.toLowerCase() === G.words.civil.toLowerCase()) {
     G.mrWhiteGuessed = true;
-    saveGameState();
+    saveGameStateToFB();
     endGame('mr_white', 'Mr. White a deviné le mot !');
   } else {
     toast('Mauvaise réponse ! Les civils gagnent.');
@@ -1233,11 +1227,11 @@ function submitMrWhiteGuess() {
     document.getElementById('elim-continue-btn').style.display   = 'block';
     document.getElementById('elim-msg').textContent =
       `Mauvaise réponse. Le mot était : "${G.words.civil}"`;
-    saveGameState();
+    saveGameStateToFB();
   }
 }
 
-function continueAfterElim() {
+async function continueAfterElim() {
   if (!G.isAdmin) {
     toast('Seul l\'admin peut continuer');
     return;
@@ -1252,7 +1246,7 @@ function continueAfterElim() {
   }
   
   updateGameUI();
-  saveGameState();
+  await saveGameStateToFB();
   showScreen('s-game');
   if (G.isAdmin) {
     gameTab('discuss');
@@ -1316,7 +1310,7 @@ function calculateScores(winner) {
 /* ─────────────────────────────────────
    END GAME
 ───────────────────────────────────── */
-function endGame(winner, msg) {
+async function endGame(winner, msg) {
   calculateScores(winner);
   
   showScreen('s-end');
@@ -1369,7 +1363,6 @@ function endGame(winner, msg) {
       </div>`;
     }).join('') + `</div></div>`;
 
-  // Afficher le bouton rematch seulement pour l'admin
   const rematchBtn = document.getElementById('btn-rematch');
   if (G.isAdmin) {
     rematchBtn.style.display = 'block';
@@ -1377,33 +1370,39 @@ function endGame(winner, msg) {
     rematchBtn.style.display = 'none';
   }
 
-  if (G.roomCode) clearRoom(G.roomCode);
-  localStorage.removeItem('mrw_currentRoom');
-  if (pollInterval) clearInterval(pollInterval);
+  if (G.roomCode) {
+    if (roomListener) roomListener();
+    roomListener = null;
+    await deleteRoomFB(G.roomCode);
+  }
 }
 
 /* ─────────────────────────────────────
-   REMATCH - Rejouer avec les mêmes joueurs
+   REMATCH
 ───────────────────────────────────── */
-function rematch() {
-  // Garder les scores
+async function rematch() {
   const savedScores = { ...G.scores };
-  // Garder la liste des joueurs
   const players = [...G.rematchPlayers];
-  // Garder les comptes Mr. White / Undercover
   const mrCounts = { ...G.mrCounts };
   
-  // Réinitialiser l'état du jeu MAIS garder les joueurs et les scores
+  const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
+  const wc = pair[0];
+  const wu = pair[1];
+  
+  const code = genCode();
+  const roles = assignRoles(players, mrCounts.mr, mrCounts.uc);
+  const turnOrder = generateTurnOrder(players, roles);
+  
   G = {
-    roomCode: '',
+    roomCode: code,
     isAdmin: true,
     devicePlayers: [...G.devicePlayers],
     allPlayers: [...players],
-    roles: {},
-    words: { civil: '', uc: '' },
-    alive: [],
+    roles: roles,
+    words: { civil: wc, uc: wu },
+    alive: [...players],
     eliminated: [],
-    turnOrder: [],
+    turnOrder: turnOrder,
     currentTurnIndex: 0,
     round: 1,
     phase: 'discuss',
@@ -1415,19 +1414,6 @@ function rematch() {
     revealPhaseCompleted: false,
     rematchPlayers: [...players],
   };
-  
-  // Créer une nouvelle salle avec les mêmes joueurs
-  const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
-  const wc = pair[0];
-  const wu = pair[1];
-  
-  const code = genCode();
-  G.roomCode = code;
-  G.words = { civil: wc, uc: wu };
-  
-  // Tous les joueurs sont déjà là, pas besoin d'attendre
-  const roles = assignRoles(players, mrCounts.mr, mrCounts.uc);
-  const turnOrder = generateTurnOrder(players, roles);
   
   const roomData = {
     code,
@@ -1448,25 +1434,21 @@ function rematch() {
       scores: savedScores,
       revealPhaseCompleted: false,
     },
+    createdAt: Date.now(),
   };
   
-  saveRoom(roomData);
-  setCurrentRoom(code, true, G.devicePlayers);
-  
-  G.roles = roles;
-  G.alive = [...players];
-  G.turnOrder = turnOrder;
-  
-  // Démarrer directement la phase de révélation
+  await saveRoomFB(roomData);
   startRevealPhase();
 }
 
 /* ─────────────────────────────────────
-   NEW GAME
+   NEW GAME / LEAVE
 ───────────────────────────────────── */
 function newGame() {
-  const savedScores = { ...G.scores };
+  if (roomListener) roomListener();
+  roomListener = null;
   
+  const savedScores = { ...G.scores };
   G = {
     roomCode:'',isAdmin:false,devicePlayers:[],allPlayers:[],
     roles:{},words:{civil:'',uc:''},alive:[],eliminated:[],
@@ -1478,27 +1460,21 @@ function newGame() {
     rematchPlayers: [],
   };
   extraPlayers = []; joinPlayers = [];
-  localStorage.removeItem('mrw_currentRoom');
-  if (pollInterval) clearInterval(pollInterval);
   showScreen('s-home');
 }
 
 function confirmLeave() {
   document.getElementById('overlay-leave').classList.remove('hidden');
 }
-function leaveGame() {
+
+async function leaveGame() {
   if (G.roomCode) {
-    const rd = loadRoom(G.roomCode);
-    if (rd) {
-      if (G.isAdmin) {
-        clearRoom(G.roomCode);
-      } else {
-        rd.players = rd.players.filter(p => !G.devicePlayers.includes(p.name));
-        saveRoom(rd);
-      }
+    if (G.isAdmin) {
+      await deleteRoomFB(G.roomCode);
     }
+    if (roomListener) roomListener();
+    roomListener = null;
   }
-  localStorage.removeItem('mrw_currentRoom');
   closeOverlay('overlay-leave');
   newGame();
 }
