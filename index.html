@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="tn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Mr. White — Le Jeu</title>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<title>Mr. White — لعب</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -29,24 +27,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 .screen.active{display:flex;}
 
 /* ── TYPOGRAPHY ── */
-.logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:var(--red);text-align:center;line-height:1;margin-bottom:4px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:var(--red);text-align:center;line-height:1;margin-bottom:4px;text-shadow:0 2px 8px rgba(232,69,69,.2);}
 .logo span{color:var(--text);}
 .sub{text-align:center;color:var(--text2);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;}
 h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--text);}
-h3{font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+h3{font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 label{display:block;font-size:12px;font-weight:600;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
 .small{font-size:12px;color:var(--text2);}
 .section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
 
 /* ── BUTTONS ── */
-.btn{width:100%;padding:14px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .2s;letter-spacing:.5px;}
-.btn-primary{background:var(--red);color:#fff;}
+.btn{width:100%;padding:14px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .3s ease;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary{background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(232,69,69,.3);}
+.btn-primary:hover{background:var(--red2);transform:translateY(-2px);box-shadow:0 6px 16px rgba(232,69,69,.4);}
 .btn-primary:active{background:var(--red3);transform:scale(.98);}
-.btn-secondary{background:transparent;color:var(--text);border:1.5px solid var(--border2);}
+.btn-secondary{background:transparent;color:var(--text);border:1.5px solid var(--border2);transition:all .3s ease;}
+.btn-secondary:hover{border-color:var(--text);background:rgba(240,160,48,.05);}
 .btn-secondary:active{background:var(--card);transform:scale(.98);}
-.btn-ghost{background:var(--card2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost{background:var(--card2);color:var(--text2);border:1px solid var(--border);transition:all .3s ease;}
+.btn-ghost:hover{background:var(--card);color:var(--text);border-color:var(--border2);}
 .btn-ghost:active{opacity:.7;transform:scale(.98);}
 .btn-green{background:var(--green);color:#003020;}
+.btn-green:hover{background:var(--green2);transform:translateY(-2px);}
 .btn-green:active{transform:scale(.98);}
 
 /* ── LAYOUT HELPERS ── */
@@ -58,12 +60,14 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);letter-spa
 .field{margin-bottom:14px;}
 
 /* ── CARDS ── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
-.card2{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:all .3s ease;}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+.card2{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 
 /* ── FORM ELEMENTS ── */
-input,select{width:100%;padding:13px 14px;border-radius:var(--r2);background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;}
-input:focus,select:focus{border-color:var(--border2);}
+input,select{width:100%;padding:13px 14px;border-radius:var(--r2);background:var(--card2);border:1.5px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:all .3s ease;}
+input:hover,select:hover{border-color:var(--border2);}
+input:focus,select:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(106,184,255,.1);background:var(--card);}
 input::placeholder{color:var(--text2);}
 select option{background:var(--card2);}
 
@@ -77,22 +81,28 @@ select option{background:var(--card2);}
 /* ── SPECIAL ELEMENTS ── */
 .code-box{font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:10px;color:var(--red);text-align:center;padding:20px;background:var(--card2);border-radius:var(--r);border:1px dashed var(--border2);margin:10px 0;}
 .avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;}
-.player-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r2);border:1px solid var(--border);}
-.num-btn{width:44px;height:44px;border-radius:50%;background:var(--card2);border:1.5px solid var(--border2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.player-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r2);border:1px solid var(--border);transition:all .3s ease;}
+.player-row:hover{background:var(--card);border-color:var(--border2);transform:translateX(4px);}
+.num-btn{width:44px;height:44px;border-radius:50%;background:var(--card2);border:1.5px solid var(--border2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s ease;}
+.num-btn:hover{background:var(--border2);color:var(--text);}
 .num-btn:active{background:var(--border);transform:scale(.95);}
 .num-val{font-size:28px;font-weight:700;min-width:44px;text-align:center;}
 .counter-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
 .add-player-row{display:flex;gap:8px;margin-bottom:12px;}
 .add-player-row input{flex:1;}
-.add-player-row button{padding:12px 16px;background:var(--red);color:#fff;border:none;border-radius:var(--r2);font-size:18px;cursor:pointer;font-weight:700;}
-.phase-bar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;position:sticky;top:0;z-index:10;}
+.add-player-row button{padding:12px 16px;background:var(--red);color:#fff;border:none;border-radius:var(--r2);font-size:18px;cursor:pointer;font-weight:700;transition:all .3s ease;box-shadow:0 4px 8px rgba(232,69,69,.2);}
+.add-player-row button:hover{background:var(--red2);transform:translateY(-2px);box-shadow:0 6px 12px rgba(232,69,69,.3);}
+.add-player-row button:active{transform:scale(.95);}
+.phase-bar{background:var(--card);border-bottom:2px solid var(--border2);padding:12px 16px;position:sticky;top:0;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.2);}
 .tab-bar{display:flex;gap:6px;margin-bottom:16px;}
-.tab{flex:1;padding:8px;border-radius:var(--r2);background:var(--card);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;letter-spacing:.5px;}
-.tab.active{background:var(--red);color:#fff;border-color:var(--red);}
+.tab{flex:1;padding:8px;border-radius:var(--r2);background:var(--card);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;letter-spacing:.5px;transition:all .3s ease;}
+.tab:hover{background:var(--card2);border-color:var(--border2);}
+.tab.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 4px 8px rgba(232,69,69,.2);}
 .vote-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
-.vote-card{background:var(--card2);border:1.5px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center;cursor:pointer;transition:all .2s;}
-.vote-card:active,.vote-card.selected{border-color:var(--red2);background:rgba(232,69,69,.08);}
-.vote-card .vname{font-weight:600;font-size:14px;}
+.vote-card{background:var(--card2);border:1.5px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center;cursor:pointer;transition:all .3s ease;}
+.vote-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.vote-card:active,.vote-card.selected{border-color:var(--red2);background:rgba(232,69,69,.08);box-shadow:0 0 0 3px rgba(232,69,69,.1);}
+.vote-card .vname{font-weight:600;font-size:14;}
 .vote-card .vvotes{font-size:11px;color:var(--text2);margin-top:4px;}
 .role-reveal{text-align:center;padding:24px 16px;}
 .role-badge{display:inline-block;padding:8px 28px;border-radius:40px;font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;margin:16px 0;}
@@ -116,6 +126,8 @@ select option{background:var(--card2);}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 .fade-in{animation:fadeIn .3s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+.slide-in{animation:slideIn .3s ease;}
 </style>
 </head>
 <body>
@@ -126,17 +138,16 @@ select option{background:var(--card2);}
 <div class="screen active" id="s-home">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 0;">
     <div style="text-align:center;margin-bottom:40px;">
-      <div style="font-size:64px;margin-bottom:8px;">🕵️</div>
+      <div style="font-size:56px;margin-bottom:8px;color:var(--red);"><i class="fas fa-mask"></i></div>
       <div class="logo">MR.<span>WHITE</span></div>
-      <div class="sub">Qui cache son identité ?</div>
+      <div class="sub">شكون يخبي هويته؟</div>
     </div>
     <div class="gap">
-      <button class="btn btn-primary" onclick="showScreen('s-create')">🎮 Créer une partie</button>
-      <button class="btn btn-secondary" onclick="showScreen('s-join')">🔗 Rejoindre une partie</button>
-      <button class="btn btn-ghost" onclick="showScreen('s-rules')">📖 Règles du jeu</button>
+      <button class="btn btn-primary" onclick="showScreen('s-create')"><i class="fas fa-gamepad"></i> أبدا لعبة جديدة</button>
+      <button class="btn btn-ghost" onclick="showScreen('s-rules')"><i class="fas fa-book"></i> قواعد اللعبة</button>
     </div>
   </div>
-  <div style="text-align:center;padding:16px;" class="small">Jusqu'à 20 joueurs · Multi-appareils · En ligne</div>
+  <div style="text-align:center;padding:16px;" class="small"><i class="fas fa-users"></i> حتى 20 لاعب · <i class="fas fa-wifi-slash"></i> بلا أنترنت</div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -145,51 +156,51 @@ select option{background:var(--card2);}
 <div class="screen" id="s-rules">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
     <button class="btn btn-ghost" style="width:44px;padding:0;height:44px;flex-shrink:0;" onclick="showScreen('s-home')">←</button>
-    <h2>Règles</h2>
+    <h2>القواعد</h2>
   </div>
   <div class="gap" style="overflow-y:auto;flex:1;">
     <div class="card">
-      <h3>🎭 Les Rôles</h3>
+      <h3><i class="fas fa-theater-masks"></i> الأدوار</h3>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div class="flex" style="gap:10px;align-items:flex-start;">
           <span class="tag tag-red" style="flex-shrink:0;margin-top:2px;">Mr. White</span>
-          <span class="small" style="flex:1;line-height:1.6;">Ne connaît pas le mot secret. Doit bluffer en écoutant les autres et, s'il est éliminé, tenter de deviner le mot pour gagner.</span>
+          <span class="small" style="flex:1;line-height:1.6;">ما يعرفش الكلمة السرّية. لازم يبلوف ويحكّي مع الناس، واذا طار، يحاول يخمّن الكلمة باش يربح.</span>
         </div>
         <div class="flex" style="gap:10px;align-items:flex-start;">
-          <span class="tag tag-amber" style="flex-shrink:0;margin-top:2px;">Undercover</span>
-          <span class="small" style="flex:1;line-height:1.6;">Reçoit un mot similaire mais différent. Doit rester discret et éviter d'être démasqué par les civils.</span>
+          <span class="tag tag-amber" style="flex-shrink:0;margin-top:2px;">مستخبي</span>
+          <span class="small" style="flex:1;line-height:1.6;">يعطيه كلمة مشابهة لكن مختلفة. لازم يبقى مخبي و ما يطلعش روحه للسكان.</span>
         </div>
         <div class="flex" style="gap:10px;align-items:flex-start;">
-          <span class="tag tag-green" style="flex-shrink:0;margin-top:2px;">Civil</span>
-          <span class="small" style="flex:1;line-height:1.6;">Reçoit le mot secret. Doit identifier Mr. White et l'Undercover avant d'être éliminé.</span>
+          <span class="tag tag-green" style="flex-shrink:0;margin-top:2px;">مدني</span>
+          <span class="small" style="flex:1;line-height:1.6;">يعطيه الكلمة السرّية. لازم يكتشف Mr. White والمستخبي قبل ما يطير.</span>
         </div>
       </div>
     </div>
     <div class="card">
-      <h3>🎮 Déroulement d'une manche</h3>
+      <h3><i class="fas fa-play"></i> كيفاش تدور الدورة</h3>
       <div style="font-size:13px;color:var(--text2);line-height:2;">
-        <b style="color:var(--text);">1.</b> Chaque joueur reçoit son rôle en secret<br>
-        <b style="color:var(--text);">2.</b> À tour de rôle, chacun décrit son mot en <b style="color:var(--text)">un seul mot</b><br>
-        <b style="color:var(--text);">3.</b> Discussion libre entre tous les joueurs<br>
-        <b style="color:var(--text);">4.</b> Vote : le joueur avec le plus de votes est éliminé<br>
-        <b style="color:var(--text);">5.</b> Si Mr. White est éliminé, il peut tenter de deviner<br>
-        <b style="color:var(--text);">6.</b> Répéter jusqu'à la victoire d'un camp
+        <b style="color:var(--text);">1.</b> كل لاعب ياخذ دوره في السرّ<br>
+        <b style="color:var(--text);">2.</b> بالدور، كل واحد يوصف كلمتو ب<b style="color:var(--text)">كلمة وحدة</b><br>
+        <b style="color:var(--text);">3.</b> نقاش مفتوح بين الكل<br>
+        <b style="color:var(--text);">4.</b> تصويت: اللي عليه أكثر تصويت يطير<br>
+        <b style="color:var(--text);">5.</b> إذا طار Mr. White، يحاول يخمن الكلمة<br>
+        <b style="color:var(--text);">6.</b> نعيدو حتى واحد يربح
       </div>
     </div>
     <div class="card">
-      <h3>🏆 Conditions de Victoire</h3>
+      <h3><i class="fas fa-trophy"></i> شروط الفوز</h3>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <div><span class="tag tag-red">Mr. White</span> <span class="small" style="margin-left:6px;">Survive jusqu'à 2 joueurs restants, ou devine le mot si éliminé</span></div>
-        <div><span class="tag tag-amber">Undercover</span> <span class="small" style="margin-left:6px;">Élimine tous les civils ou survit jusqu'à 2 joueurs</span></div>
-        <div><span class="tag tag-green">Civils</span> <span class="small" style="margin-left:6px;">Éliminent tous les Mr. White et Undercover</span></div>
+        <div><span class="tag tag-red">Mr. White</span> <span class="small" style="margin-left:6px;">يبقى حتى يبقاو زوز لاعبين، أو يخمن الكلمة إذا طار</span></div>
+        <div><span class="tag tag-amber">مستخبي</span> <span class="small" style="margin-left:6px;">يطيح جميع المدنيين أو يبقى حتى يبقاو زوز لاعبين</span></div>
+        <div><span class="tag tag-green">مدنيين</span> <span class="small" style="margin-left:6px;">يطيحو Mr. White والمستخبي</span></div>
       </div>
     </div>
     <div class="card">
-      <h3>📱 Multi-Appareils</h3>
+      <h3><i class="fas fa-mobile"></i> وضعية محلية</h3>
       <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        L'admin crée une salle et partage le code à 4 lettres.<br>
-        Chaque joueur rejoint depuis son téléphone.<br>
-        Sans téléphone ? Ajoutez plusieurs joueurs sur un même appareil — le jeu gère le passage en privé !
+        زيد جميع اللاعبين على نفس الجهاز.<br>
+        اللعبة تمشي بالخفيف لكل لاعب باش يظهرله دوره.<br>
+        تشتغل <b style="color:var(--green2);">بدون أنترنت</b> — ما تحتاجش اتصال!
       </div>
     </div>
     <div style="height:20px;"></div>
@@ -202,30 +213,26 @@ select option{background:var(--card2);}
 <div class="screen" id="s-create">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
     <button class="btn btn-ghost" style="width:44px;padding:0;height:44px;flex-shrink:0;" onclick="showScreen('s-home')">←</button>
-    <h2>Nouvelle Partie</h2>
+    <h2>لعبة جديدة</h2>
   </div>
   <div style="overflow-y:auto;flex:1;">
     <div class="field">
-      <label>Votre nom (Admin)</label>
-      <input id="admin-name" placeholder="Votre pseudo..." maxlength="16">
+      <label>كل اللاعبين</label>
+      <div class="small" style="margin-bottom:10px;">زيد اللاعبين اللي باش يلعبو على هذا الجهاز</div>
     </div>
-
-    <div class="divider"></div>
-    <h3>👥 Joueurs supplémentaires sur cet appareil</h3>
-    <div class="small" style="margin-bottom:10px;">Pour les joueurs sans téléphone ou partageant cet appareil</div>
     <div class="add-player-row">
-      <input id="extra-name" placeholder="Nom du joueur..." maxlength="16"
+      <input id="admin-name" placeholder="إسمك..."
              onkeydown="if(event.key==='Enter')addExtraPlayer()">
       <button onclick="addExtraPlayer()">+</button>
     </div>
     <div id="extra-players-list" class="gap" style="margin-bottom:16px;"></div>
 
     <div class="divider"></div>
-    <h3>⚙️ Nombre d'imposteurs</h3>
+    <h3><i class="fas fa-sliders"></i> عدد المستخبيين</h3>
     <div class="counter-row">
       <div>
         <div style="font-weight:600;font-size:14px;">Mr. White</div>
-        <div class="small">Sans mot — doit bluffer</div>
+        <div class="small">بدون كلمة — لازم يبلوف</div>
       </div>
       <div class="flex" style="gap:12px;align-items:center;">
         <button class="num-btn" onclick="adj('mr',-1)">−</button>
@@ -235,8 +242,8 @@ select option{background:var(--card2);}
     </div>
     <div class="counter-row">
       <div>
-        <div style="font-weight:600;font-size:14px;">Undercover</div>
-        <div class="small">Mot proche — doit se fondre</div>
+        <div style="font-weight:600;font-size:14px;">مستخبي</div>
+        <div class="small">كلمة قريبة — لازم يندمج</div>
       </div>
       <div class="flex" style="gap:12px;align-items:center;">
         <button class="num-btn" onclick="adj('uc',-1)">−</button>
@@ -246,11 +253,11 @@ select option{background:var(--card2);}
     </div>
 
     <div class="divider"></div>
-    <h3>📝 Les mots sont choisis aléatoirement</h3>
-    <div class="small" style="margin-bottom:16px;color:var(--text2);">Les mots seront sélectionnés au hasard parmi les paires disponibles. Chaque partie est unique !</div>
+    <h3><i class="fas fa-dice"></i> الكلمات تختار عشوائياً</h3>
+    <div class="small" style="margin-bottom:16px;color:var(--text2);">الكلمات تولي تختار عشوائياً من الأزواج المتوفرة. كل لعبة مختلفة!</div>
 
     <div class="divider"></div>
-    <button class="btn btn-primary" onclick="createGame()">Créer la partie →</button>
+    <button class="btn btn-primary" onclick="startGameFromCreate()">أبدا اللعبة →</button>
     <div style="height:30px;"></div>
   </div>
 </div>
@@ -261,27 +268,27 @@ select option{background:var(--card2);}
 <div class="screen" id="s-lobby">
   <div class="phase-bar">
     <div class="flex-between">
-      <h2>Salle d'attente</h2>
+      <h2>صالة الإنتظار</h2>
       <span id="lobby-code-badge" class="tag tag-red"
             style="font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;"></span>
     </div>
   </div>
   <div style="flex:1;overflow-y:auto;padding:16px;">
     <div class="card" style="margin-bottom:16px;">
-      <div class="small" style="margin-bottom:6px;">Code à partager</div>
+      <div class="small" style="margin-bottom:6px;">كود باش تشارك</div>
       <div class="code-box" id="room-code-display">----</div>
-      <div class="small" style="text-align:center;">Partagez ce code à vos amis</div>
+      <div class="small" style="text-align:center;">شارك هذا الكود مع أصحابك</div>
     </div>
     <div class="flex-between" style="margin-bottom:8px;">
-      <h3 style="margin-bottom:0;">Joueurs <span id="player-count" style="color:var(--red);">0</span></h3>
+      <h3 style="margin-bottom:0;">اللاعبين <span id="player-count" style="color:var(--red);">0</span></h3>
     </div>
     <div id="players-list" class="gap" style="margin-bottom:16px;"></div>
     <div id="lobby-warning" class="small"
          style="color:var(--red2);text-align:center;margin-bottom:12px;display:none;"></div>
     <button class="btn btn-primary" id="start-btn" onclick="startGame()" disabled>
-      Lancer la partie
+      أبدا اللعبة
     </button>
-    <button class="btn btn-ghost" style="margin-top:8px;" onclick="confirmLeave()">Quitter / Annuler</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="confirmLeave()"><i class="fas fa-arrow-right-from-bracket"></i> أخرج / ألغي</button>
     <div style="height:20px;"></div>
   </div>
 </div>
@@ -293,24 +300,24 @@ select option{background:var(--card2);}
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
     <button class="btn btn-ghost" style="width:44px;padding:0;height:44px;flex-shrink:0;"
             onclick="showScreen('s-home')">←</button>
-    <h2>Rejoindre</h2>
+    <h2>أدخل</h2>
   </div>
   <div class="field">
-    <label>Code de la salle</label>
+    <label>كود الصالة</label>
     <input id="join-code" placeholder="XXXX" maxlength="4"
            style="text-transform:uppercase;font-size:32px;text-align:center;letter-spacing:8px;font-family:'Bebas Neue'"
            oninput="this.value=this.value.toUpperCase()">
   </div>
   <div class="divider"></div>
-  <h3>Joueurs sur cet appareil</h3>
-  <div class="small" style="margin-bottom:10px;">Ajoutez tous les joueurs qui utilisent cet appareil</div>
+  <h3>اللاعبين على هذا الجهاز</h3>
+  <div class="small" style="margin-bottom:10px;">زيد جميع اللاعبين اللي باش يستعملوا هذا الجهاز</div>
   <div class="add-player-row">
-    <input id="join-name" placeholder="Nom..." maxlength="16"
+    <input id="join-name" placeholder="إسم..."
            onkeydown="if(event.key==='Enter')addJoinPlayer()">
     <button onclick="addJoinPlayer()">+</button>
   </div>
   <div id="join-players-list" class="gap" style="margin-bottom:16px;"></div>
-  <button class="btn btn-primary" onclick="joinGame()">Rejoindre →</button>
+  <button class="btn btn-primary" onclick="joinGame()">أدخل →</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -318,9 +325,9 @@ select option{background:var(--card2);}
 ══════════════════════════════════════ -->
 <div class="screen" id="s-waiting">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
-    <div style="font-size:56px;margin-bottom:16px;" class="pulse">⌛</div>
-    <h2 style="text-align:center;margin-bottom:8px;">En attente...</h2>
-    <div class="small" style="text-align:center;margin-bottom:24px;">L'admin va lancer la partie</div>
+    <div style="font-size:48px;margin-bottom:16px;color:var(--amber2);" class="pulse"><i class="fas fa-hourglass-end"></i></div>
+    <h2 style="text-align:center;margin-bottom:8px;">تضاري...</h2>
+    <div class="small" style="text-align:center;margin-bottom:24px;">الادمن باش يبدا اللعبة</div>
     <div id="waiting-players" class="gap" style="width:100%;max-width:340px;margin-bottom:20px;"></div>
   </div>
   <div style="display:flex;justify-content:center;padding:16px;">
@@ -328,7 +335,7 @@ select option{background:var(--card2);}
         class="btn btn-ghost"
         style="width:100%;max-width:300px;"
         onclick="confirmLeave()">
-        Quitter
+        <i class="fas fa-right-from-bracket"></i> أخرج
     </button>
 </div>
 </div>
@@ -338,7 +345,7 @@ select option{background:var(--card2);}
 ══════════════════════════════════════ -->
 <div class="screen" id="s-reveal-queue">
   <div class="phase-bar" style="text-align:center;">
-    <div class="small" style="margin-bottom:4px;">Révélation des rôles — privée</div>
+    <div class="small" style="margin-bottom:4px;">تظهر الأدوار — بالخفيف</div>
     <div style="font-size:13px;font-weight:500;" id="reveal-progress-text"></div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;"
@@ -354,9 +361,9 @@ select option{background:var(--card2);}
     <div class="flex-between">
       <div>
         <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;">
-          Manche <span id="round-num">1</span>
+          دورة <span id="round-num">1</span>
         </div>
-        <div style="font-weight:600;" id="phase-title">Discussion</div>
+        <div style="font-weight:600;" id="phase-title">نقاش</div>
       </div>
       <div class="flex" style="gap:8px;">
         <span class="tag tag-green" id="alive-count"></span>
@@ -366,15 +373,15 @@ select option{background:var(--card2);}
   </div>
   <div style="flex:1;overflow-y:auto;padding:16px;">
     <div class="tab-bar">
-      <div class="tab active" onclick="gameTab('discuss')" id="tab-discuss">Discussion</div>
-      <div class="tab" id="tab-vote" style="display:none;">Vote</div>
-      <div class="tab" onclick="gameTab('status')" id="tab-status">Statut</div>
+      <div class="tab active" onclick="gameTab('discuss')" id="tab-discuss">نقاش</div>
+      <div class="tab" id="tab-vote" style="display:none;">تصويت</div>
+      <div class="tab" onclick="gameTab('status')" id="tab-status">الوضع</div>
     </div>
 
     <!-- TAB: DISCUSSION -->
     <div id="panel-discuss" class="fade-in">
       <div class="card" style="margin-bottom:12px;">
-        <h3>Ordre de jeu</h3>
+        <h3>ترتيب اللعب</h3>
         <div id="turn-order" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
       </div>
       <div id="device-players-panel"></div>
@@ -383,13 +390,13 @@ select option{background:var(--card2);}
     <!-- TAB: VOTE (ADMIN ONLY) -->
     <div id="panel-vote" style="display:none;" class="fade-in">
       <div class="card" style="margin-bottom:12px;">
-        <div style="font-weight:600;margin-bottom:4px;">🔨 Élimination (Admin uniquement)</div>
-        <div class="small">L'admin choisit qui éliminer après discussion</div>
+        <div style="font-weight:600;margin-bottom:4px;"><i class="fas fa-gavel"></i> إقصاء (الادمن فقط)</div>
+        <div class="small">الادمن يختار من باش يطيح بعد النقاش</div>
       </div>
       <div id="vote-grid" class="vote-grid"></div>
       <button class="btn btn-primary" onclick="processVotes()"
               id="vote-confirm-btn" style="margin-top:8px;" disabled>
-        ✓ Éliminer ce joueur
+        ✓ أطيح هذا اللاعب
       </button>
     </div>
 
@@ -398,7 +405,7 @@ select option{background:var(--card2);}
       <div id="status-list" class="gap"></div>
     </div>
 
-    <button class="btn btn-ghost" style="margin-top:16px;" onclick="confirmLeave()">❌ Quitter la partie</button>
+    <button class="btn btn-ghost" style="margin-top:16px;" onclick="confirmLeave()"><i class="fas fa-right-from-bracket"></i> أخرج من اللعبة</button>
   </div>
 </div>
 
@@ -407,23 +414,23 @@ select option{background:var(--card2);}
 ══════════════════════════════════════ -->
 <div class="screen" id="s-elim">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
-    <div style="font-size:64px;margin-bottom:16px;" id="elim-icon">💀</div>
-    <h2 style="margin-bottom:8px;" id="elim-title">Éliminé !</h2>
+    <div style="font-size:56px;margin-bottom:16px;color:var(--red);" id="elim-icon"><i class="fas fa-xmark"></i></div>
+    <h2 style="margin-bottom:8px;" id="elim-title">طار!</h2>
     <div id="elim-role-badge" style="margin:12px 0;"></div>
     <div style="font-size:15px;color:var(--text2);margin-bottom:24px;" id="elim-msg"></div>
 
     <div id="mrwhite-guess-panel" style="width:100%;display:none;">
       <div class="card" style="margin-bottom:12px;text-align:left;">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--red2);">🎯 Dernière chance !</div>
-        <div class="small" style="margin-bottom:12px;">Devinez le mot des Civils pour gagner !</div>
-        <input class="mr-white-guess" id="mw-guess-input" placeholder="Votre réponse..."
+        <div style="font-weight:600;margin-bottom:8px;color:var(--red2);"><i class="fas fa-bullseye"></i> آخر فرصة!</div>
+        <div class="small" style="margin-bottom:12px;">خمّن كلمة المدنيين باش تربح!</div>
+        <input class="mr-white-guess" id="mw-guess-input" placeholder="جوابك..."
                onkeydown="if(event.key==='Enter')submitMrWhiteGuess()">
-        <button class="btn btn-primary" onclick="submitMrWhiteGuess()">Confirmer ma réponse</button>
+        <button class="btn btn-primary" onclick="submitMrWhiteGuess()">تأكيد جوابي</button>
       </div>
     </div>
 
     <button class="btn btn-secondary" id="elim-continue-btn" onclick="continueAfterElim()">
-      Continuer →
+      <i class="fas fa-arrow-right"></i> نواصل
     </button>
   </div>
 </div>
@@ -433,15 +440,15 @@ select option{background:var(--card2);}
 ══════════════════════════════════════ -->
 <div class="screen" id="s-end">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
-    <div style="font-size:72px;margin-bottom:16px;" id="end-icon">🏆</div>
-    <div class="logo" id="end-title" style="margin-bottom:8px;">FIN !</div>
+    <div style="font-size:64px;margin-bottom:16px;color:var(--green);" id="end-icon"><i class="fas fa-trophy"></i></div>
+    <div class="logo" id="end-title" style="margin-bottom:8px;">خلصت!</div>
     <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:24px;"
          id="end-team"></div>
     <div id="end-reveal" class="gap" style="width:100%;margin-bottom:24px;"></div>
-    <button class="btn btn-primary" id="btn-rematch" onclick="rematch()">🔄 Rejouer (mêmes joueurs)</button>
-    <button class="btn btn-secondary" style="margin-top:8px;" onclick="newGame()">🆕 Nouvelle partie</button>
+    <button class="btn btn-primary" id="btn-rematch" onclick="rematch()"><i class="fas fa-rotate-right"></i> لعب مرة أخرى (نفس اللاعبين)</button>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="newGame()"><i class="fas fa-plus"></i> لعبة جديدة</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="showScreen('s-home')">
-      🏠 Menu principal
+      <i class="fas fa-house"></i> القائمة الرئيسية
     </button>
   </div>
 </div>
@@ -451,13 +458,13 @@ select option{background:var(--card2);}
 ══════════════════════════════════════ -->
 <div class="overlay hidden" id="overlay-leave">
   <div class="overlay-box">
-    <h3 style="margin-bottom:12px;color:var(--text);">Quitter la partie ?</h3>
+    <h3 style="margin-bottom:12px;color:var(--text);">تخرج من اللعبة؟</h3>
     <div class="small" style="margin-bottom:20px;">
-      Si vous êtes l'admin, la salle sera supprimée pour tous.
+      إذا كنت الادمن، الصالة باش تمحى للكل.
     </div>
     <div class="gap">
-      <button class="btn btn-primary" onclick="leaveGame()">Quitter définitivement</button>
-      <button class="btn btn-ghost" onclick="closeOverlay('overlay-leave')">Annuler</button>
+      <button class="btn btn-primary" onclick="leaveGame()">أخرج نهائياً</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('overlay-leave')">الغي</button>
     </div>
   </div>
 </div>
@@ -468,34 +475,106 @@ select option{background:var(--card2);}
      JAVASCRIPT — GAME ENGINE
 ══════════════════════════════════════ -->
 <script>
-// Configuration Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyDB96dkzq-JPh1wt6GTZpaQ-RTOEznsv14",
-  authDomain: "mrwhite-cc12c.firebaseapp.com",
-  databaseURL: "https://mrwhite-cc12c-default-rtdb.firebaseio.com",
-  projectId: "mrwhite-cc12c",
-  storageBucket: "mrwhite-cc12c.firebasestorage.app",
-  messagingSenderId: "924666070258",
-  appId: "1:924666070258:web:d238f79d463c0e0def3c6b",
-  measurementId: "G-97NRY218D9"
-};
-
-// Initialiser Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+// LOCAL STORAGE MANAGEMENT (No Firebase - works offline on single device)
+const STORAGE_KEY = 'mrwhite_game_local';
 
 /* ── WORD PAIRS ── */
 const WORD_PAIRS = [
-  ["Plage","Mer"],["Pizza","Calzone"],["Lion","Tigre"],["Forêt","Jungle"],
-  ["Chocolat","Caramel"],["Avion","Hélicoptère"],["Guitare","Violon"],
-  ["Café","Thé"],["Soleil","Lune"],["Voiture","Moto"],["Piscine","Lac"],
-  ["Médecin","Infirmier"],["Château","Manoir"],["Sorcier","Vampire"],
-  ["Glace","Sorbet"],["Paris","Rome"],["Football","Rugby"],["Balcon","Terrasse"],
-  ["Cinéma","Théâtre"],["Tigre","Léopard"],["Neige","Verglas"],["Château","Palais"],
-  ["Requin","Orque"],["Banane","Mangue"],["Ordinateur","Tablette"],
-  ["Boulanger","Pâtissier"],["Couteau","Ciseau"],["Train","Métro"],
-  ["Montagne","Colline"],["Rivière","Ruisseau"],["Pomme","Poire"],
-  ["Chien","Loup"],["Chat","Renard"],["Fraise","Cerise"],["Hôtel","Auberge"],
+  ["كسكسي", "لبلابي"],
+  ["شكشوكة", "عجة"],
+  ["ملوخية", "فريكاسي"],
+  ["بريك", "مقرونة"],
+  ["كعك الورقة", "مقروض"],
+  ["هريسة", "سلاطة مشوية"],
+  ["اتاي", "قهوة"],
+  ["ياغورت", "رايب"],
+
+  ["دار", "حوش"],
+  ["حومة", "زنقة"],
+  ["سطح", "بلكون"],
+  ["شباك", "باب"],
+  ["مفتاح", "قفل"],
+  ["كرسي", "ميدة"],
+  ["بيت", "غرفة"],
+
+  ["قطوس", "كلب"],
+  ["حصان", "حمار"],
+  ["بغل", "جمل"],
+  ["عصفور", "حمامة"],
+  ["دجاجة", "ديك"],
+  ["سمكة", "حوت"],
+  ["خروف", "ماعز"],
+  ["بقرة", "ثور"],
+
+  ["بحر", "بيسين"],
+  ["شاطئ", "رمل"],
+  ["جبل", "تل"],
+  ["وادي", "بير"],
+  ["نخلة", "زيتونة"],
+  ["وردة", "ياسمين"],
+  ["شمس", "قمر"],
+  ["ليل", "نهار"],
+
+  ["سيارة", "تاكسي"],
+  ["موتور", "فسبا"],
+  ["بسكلات", "سكوتر"],
+  ["طيارة", "مطار"],
+  ["قطار", "ميترو"],
+  ["محطة", "رصيف"],
+  ["طريق", "زنقة"],
+  ["مزوط", "ايسنس"],
+
+  ["مدرسة", "معهد"],
+  ["جامعة", "مكتبة"],
+  ["كتاب", "دفتر"],
+  ["قلم", "ممحاة"],
+  ["أستاذ", "تلميذ"],
+  ["سبورة", "طاولة"],
+  ["امتحان", "فرض"],
+  ["نجاح", "رسوب"],
+
+  ["سوق", "مغازة"],
+  ["حانوت", "خضار"],
+  ["خباز", "جزار"],
+  ["فلوس", "بانك"],
+  ["محفظة", "كارني"],
+  ["فاتورة", "وصل"],
+  ["كيس", "سلة"],
+
+  ["عرس", "خطبة"],
+  ["مزود", "زكرة"],
+  ["طبلة", "دربوكة"],
+  ["عيد", "رمضان"],
+  ["هدية", "مفاجأة"],
+  ["فرحة", "ضحكة"],
+  ["رقص", "غناية"],
+  ["سهرة", "حفلة"],
+
+  ["طبيب", "صيدلي"],
+  ["سبيطار", "عيادة"],
+  ["دواء", "حقنة"],
+  ["مريض", "دكتور"],
+  ["قلب", "مخ"],
+  ["عملية", "كشف"],
+  ["تحليل", "أشعة"],
+
+  ["صاحب", "جار"],
+  ["خال", "عم"],
+  ["ولد", "بنية"],
+  ["أم", "أب"],
+  ["خو", "أخت"],
+  ["عائلة", "قرايب"],
+  ["عرس", "طلاق"],
+  ["حب", "صداقة"],
+
+  ["تلفزة", "راديو"],
+  ["تاليفون", "تابليت"],
+  ["كمبيوتر", "لاب توب"],
+  ["فايسبوك", "انستغرام"],
+  ["كاميرا", "سيلفي"],
+  ["ساعة", "منبه"],
+  ["بطارية", "شاحن"],
+  ["سماعات", "ميكرو"]
 ];
 
 /* ── GLOBAL STATE ── */
@@ -565,258 +644,110 @@ function adj(type, delta) {
 }
 
 /* ─────────────────────────────────────
-   EXTRA PLAYERS (admin device)
+   EXTRA PLAYERS (on same device)
 ───────────────────────────────────── */
 function addExtraPlayer() {
-  const n = document.getElementById('extra-name').value.trim();
-  if (!n) return toast('Entrez un nom');
-  if (extraPlayers.map(x=>x.toLowerCase()).includes(n.toLowerCase()))
-    return toast('Ce nom est déjà pris');
+  const n = document.getElementById('admin-name').value.trim();
+  if (!n) return toast('أدخل إسماً');
+  const allNames = extraPlayers.concat([]).map(x => x.toLowerCase());
+  if (allNames.includes(n.toLowerCase()))
+    return toast('هذا الإسم موجود قبل');
   extraPlayers.push(n);
-  document.getElementById('extra-name').value = '';
+  document.getElementById('admin-name').value = '';
   renderExtraPlayers();
 }
 function removeExtra(i) { extraPlayers.splice(i, 1); renderExtraPlayers(); }
 function renderExtraPlayers() {
-  document.getElementById('extra-players-list').innerHTML =
-    extraPlayers.map((n, i) => `
-      <div class="player-row">
-        <div class="avatar" style="background:${getAvatarBg(i+1)};color:${getAvatarColor(i+1)}">${n[0].toUpperCase()}</div>
-        <span style="flex:1;font-size:14px;">${escHtml(n)}</span>
-        <button onclick="removeExtra(${i})"
-                style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;">×</button>
-      </div>`).join('');
+  const list = document.getElementById('extra-players-list');
+  const allPlayers = extraPlayers;
+  list.innerHTML = allPlayers.map((n, i) => `
+    <div class="player-row">
+      <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${n[0].toUpperCase()}</div>
+      <span style="flex:1;font-size:14px;">${escHtml(n)}</span>
+      <button onclick="removeExtra(${i})"
+              style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;">×</button>
+    </div>`).join('');
 }
 
-/* ─────────────────────────────────────
-   JOIN PLAYERS (non-admin device)
-───────────────────────────────────── */
-function addJoinPlayer() {
-  const n = document.getElementById('join-name').value.trim();
-  if (!n) return toast('Entrez un nom');
-  if (joinPlayers.map(x=>x.toLowerCase()).includes(n.toLowerCase()))
-    return toast('Ce nom est déjà pris');
-  joinPlayers.push(n);
-  document.getElementById('join-name').value = '';
-  renderJoinPlayers();
-}
-function removeJoinPlayer(i) { joinPlayers.splice(i, 1); renderJoinPlayers(); }
-function renderJoinPlayers() {
-  document.getElementById('join-players-list').innerHTML =
-    joinPlayers.map((n, i) => `
-      <div class="player-row">
-        <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${n[0].toUpperCase()}</div>
-        <span style="flex:1;font-size:14px;">${escHtml(n)}</span>
-        <button onclick="removeJoinPlayer(${i})"
-                style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;">×</button>
-      </div>`).join('');
-}
-
-/* ─────────────────────────────────────
-   FIREBASE ROOM OPERATIONS
-───────────────────────────────────── */
-function genCode() {
-  return Math.random().toString(36).substr(2, 4).toUpperCase();
-}
-
-async function saveRoomFB(data) {
-  try {
-    await db.ref('rooms/' + data.code).set(data);
-    // Auto-cleanup après 2 heures
-    setTimeout(() => {
-      db.ref('rooms/' + data.code).remove();
-    }, 7200000);
-    return true;
-  } catch(e) {
-    console.error('Erreur saveRoom:', e);
-    return false;
+function startGameFromCreate() {
+  const firstPlayer = document.getElementById('admin-name').value.trim();
+  if (!firstPlayer && extraPlayers.length === 0) 
+    return toast('أضف لاعب واحد على الأقل');
+  
+  if (firstPlayer) {
+    extraPlayers.unshift(firstPlayer);
   }
-}
-
-async function loadRoomFB(code) {
-  try {
-    const snap = await db.ref('rooms/' + code).get();
-    return snap.val();
-  } catch(e) {
-    console.error('Erreur loadRoom:', e);
-    return null;
+  
+  const allPlayers = extraPlayers;
+  const mrN = parseInt(document.getElementById('cnt-mr').textContent);
+  const ucN = parseInt(document.getElementById('cnt-uc').textContent);
+  
+  if (allPlayers.length < mrN + ucN + 2) {
+    return toast(`اللازملو الأقل ${mrN + ucN + 2} لاعب (عندك ${allPlayers.length})`);
   }
-}
-
-async function deleteRoomFB(code) {
-  try {
-    await db.ref('rooms/' + code).remove();
-  } catch(e) {
-    console.error('Erreur deleteRoom:', e);
-  }
-}
-
-/* ─────────────────────────────────────
-   CREATE GAME
-───────────────────────────────────── */
-async function createGame() {
-  const adminName = document.getElementById('admin-name').value.trim();
-  if (!adminName) return toast('Entrez votre nom');
 
   const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
   const wc = pair[0];
   const wu = pair[1];
 
-  const mrN = parseInt(document.getElementById('cnt-mr').textContent);
-  const ucN = parseInt(document.getElementById('cnt-uc').textContent);
-
-  const code = genCode();
-  G.roomCode     = code;
+  G.roomCode     = 'local_' + Date.now();
   G.isAdmin      = true;
-  G.devicePlayers= [adminName, ...extraPlayers];
+  G.devicePlayers = allPlayers;
+  G.allPlayers   = allPlayers;
   G.words        = { civil: wc, uc: wu };
   G.mrCounts     = { mr: mrN, uc: ucN };
   
   loadAllScoresFromStorage();
 
-  const roomData = {
-    code,
-    status: 'waiting',
-    adminName,
-    players: G.devicePlayers.map(n => ({ name: n, device: 'admin' })),
+  const gameData = {
+    code: G.roomCode,
+    status: 'started',
+    adminName: allPlayers[0],
+    players: allPlayers.map(n => ({ name: n, device: 'local' })),
     words:   { civil: wc, uc: wu },
     mrCounts: { mr: mrN, uc: ucN },
     gameState: null,
     createdAt: Date.now(),
   };
   
-  const saved = await saveRoomFB(roomData);
-  if (!saved) {
-    toast('Erreur de connexion. Vérifiez votre internet.');
-    return;
-  }
-  
+  saveGameLocal(gameData);
   extraPlayers = [];
-  showLobby(roomData);
-  listenRoom();
+  document.getElementById('admin-name').value = '';
+  startGame();
+}
+
+/* ─────────────────────────────────────
+   JOIN PLAYERS (not used in local mode)
+───────────────────────────────────── */
+function addJoinPlayer() {}
+function removeJoinPlayer(i) {}
+function renderJoinPlayers() {}
+function joinGame() { toast('وضعية محلية: كل اللاعبين على جهاز واحد'); }
+
+/* ─────────────────────────────────────
+   STORAGE OPERATIONS (LOCAL)
+───────────────────────────────────── */
+function saveGameLocal(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  return true;
+}
+
+function loadGameLocal() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : null;
+}
+
+function clearGameLocal() {
+  localStorage.removeItem(STORAGE_KEY);
 }
 
 /* ─────────────────────────────────────
    LOBBY
 ───────────────────────────────────── */
-function showLobby(rd) {
-  document.getElementById('room-code-display').textContent  = rd.code;
-  document.getElementById('lobby-code-badge').textContent   = rd.code;
-  showScreen('s-lobby');
-  updateLobbyPlayers(rd);
-}
-
-function updateLobbyPlayers(rd) {
-  const players = rd.players || [];
-  document.getElementById('player-count').textContent = players.length;
-  document.getElementById('players-list').innerHTML =
-    players.map((p, i) => `
-      <div class="player-row">
-        <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p.name[0].toUpperCase()}</div>
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:500;">${escHtml(p.name)}</div>
-        </div>
-        ${p.device === 'admin' ? '<span class="tag tag-red">Admin</span>' : ''}
-      </div>`).join('');
-
-  const minP = G.mrCounts.mr + G.mrCounts.uc + 2;
-  const btn  = document.getElementById('start-btn');
-  const warn = document.getElementById('lobby-warning');
-  if (players.length >= minP) {
-    btn.disabled    = false;
-    btn.textContent = `Lancer la partie (${players.length} joueurs)`;
-    warn.style.display = 'none';
-  } else {
-    btn.disabled    = true;
-    btn.textContent = 'Lancer la partie';
-    warn.style.display = 'block';
-    warn.textContent = `Minimum ${minP} joueurs requis (${minP - players.length} manquants)`;
-  }
-}
-
-function listenRoom() {
-  if (roomListener) roomListener();
-  roomListener = db.ref('rooms/' + G.roomCode).on('value', (snap) => {
-    const rd = snap.val();
-    if (!rd) {
-      if (roomListener) roomListener();
-      roomListener = null;
-      if (!G.revealPhaseCompleted) {
-        toast('La salle a été fermée');
-        newGame();
-      }
-      return;
-    }
-    
-    if (G.isAdmin) {
-      updateLobbyPlayers(rd);
-      if (rd.status === 'started' && !G.revealPhaseCompleted) {
-        if (roomListener) roomListener();
-        roomListener = null;
-        applyGameState(rd);
-        startRevealPhase();
-      }
-    } else {
-      renderWaitingPlayers(rd);
-      if (rd.status === 'started' && !G.revealPhaseCompleted) {
-        if (roomListener) roomListener();
-        roomListener = null;
-        applyGameState(rd);
-        startRevealPhase();
-      }
-    }
-  });
-}
-
-/* ─────────────────────────────────────
-   JOIN GAME
-───────────────────────────────────── */
-async function joinGame() {
-  const code = document.getElementById('join-code').value.trim().toUpperCase();
-  if (code.length !== 4) return toast('Le code fait 4 caractères');
-  if (joinPlayers.length === 0) return toast('Ajoutez au moins un joueur');
-
-  const rd = await loadRoomFB(code);
-  if (!rd) return toast('Salle introuvable ! Vérifiez le code.');
-  if (rd.status === 'started') return toast('La partie a déjà commencé');
-
-  const existing = rd.players.map(p => p.name.toLowerCase());
-  for (const n of joinPlayers) {
-    if (existing.includes(n.toLowerCase()))
-      return toast(`"${n}" est déjà dans la salle`);
-  }
-
-  G.roomCode      = code;
-  G.isAdmin       = false;
-  G.devicePlayers = [...joinPlayers];
-  G.words         = rd.words;
-  G.mrCounts      = rd.mrCounts;
-  
-  loadAllScoresFromStorage();
-
-  const devId = genCode();
-  rd.players.push(...joinPlayers.map(n => ({ name: n, device: devId })));
-  await saveRoomFB(rd);
-  joinPlayers = [];
-
-  showWaiting(rd);
-  listenRoom();
-}
-
-function showWaiting(rd) {
-  showScreen('s-waiting');
-  renderWaitingPlayers(rd);
-}
-
-function renderWaitingPlayers(rd) {
-  const players = rd.players || [];
-  document.getElementById('waiting-players').innerHTML =
-    players.map((p, i) => `
-      <div class="player-row">
-        <div class="avatar" style="background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p.name[0].toUpperCase()}</div>
-        <span style="flex:1;font-size:14px;">${escHtml(p.name)}</span>
-        ${G.devicePlayers.includes(p.name) ? '<span class="tag tag-blue">Vous</span>' : ''}
-      </div>`).join('');
+function showLobby(gameData) {
+  showScreen('s-home');
+  // Directly start the game with all local players
+  setTimeout(() => startGame(), 300);
 }
 
 /* ─────────────────────────────────────
@@ -849,60 +780,56 @@ function generateTurnOrder(players, roles) {
 }
 
 /* ─────────────────────────────────────
-   START GAME (admin triggers)
+   START GAME (LOCAL)
 ───────────────────────────────────── */
-async function startGame() {
-  const rd = await loadRoomFB(G.roomCode);
-  if (!rd) return toast('Erreur: salle introuvable');
+function startGame() {
+  const gameData = loadGameLocal();
+  if (!gameData) return toast('خطأ: مانجمش نحمل اللعبة');
 
-  const players = rd.players.map(p => p.name);
-  const roles   = assignRoles(players, rd.mrCounts.mr, rd.mrCounts.uc);
+  const players = gameData.players.map(p => p.name);
+  const roles   = assignRoles(players, gameData.mrCounts.mr, gameData.mrCounts.uc);
   const turnOrder = generateTurnOrder(players, roles);
 
-  rd.status    = 'started';
-  rd.gameState = {
-    roles,
-    alive:      [...players],
-    eliminated: [],
-    turnOrder,
-    currentTurnIndex: 0,
-    round:      1,
-    phase:      'discuss',
-    votes:      {},
-    scores:     G.scores,
-  };
-  
-  await saveRoomFB(rd);
+  G.allPlayers = players;
+  G.roles = roles;
+  G.alive = [...players];
+  G.eliminated = [];
+  G.turnOrder = turnOrder;
+  G.currentTurnIndex = 0;
+  G.round = 1;
+  G.phase = 'discuss';
+  G.votes = {};
+  G.words = gameData.words;
+  G.mrCounts = gameData.mrCounts;
   G.revealPhaseCompleted = false;
-  applyGameState(rd);
   G.rematchPlayers = [...players];
+  
+  saveGameStateLocal();
   startRevealPhase();
 }
 
-function applyGameState(rd) {
-  const gs = rd.gameState;
-  if (!gs) return;
-  G.allPlayers = rd.players.map(p => p.name);
-  G.roles      = gs.roles;
-  G.alive      = [...gs.alive];
-  G.eliminated = [...gs.eliminated];
+function applyGameState(gameData) {
+  const gs = gameData.gameState || {};
+  G.allPlayers = gameData.players.map(p => p.name);
+  G.roles      = gs.roles || {};
+  G.alive      = gs.alive || [];
+  G.eliminated = gs.eliminated || [];
   G.turnOrder  = gs.turnOrder || [];
   G.currentTurnIndex = gs.currentTurnIndex || 0;
-  G.round      = gs.round;
-  G.phase      = gs.phase;
+  G.round      = gs.round || 1;
+  G.phase      = gs.phase || 'discuss';
   G.votes      = gs.votes || {};
-  G.words      = rd.words;
-  G.mrCounts   = rd.mrCounts;
+  G.words      = gameData.words;
+  G.mrCounts   = gameData.mrCounts;
   G.scores     = { ...loadPlayerScores(), ...(gs.scores || {}) };
   G.revealPhaseCompleted = gs.revealPhaseCompleted || false;
   G.rematchPlayers = [...G.allPlayers];
 }
 
-async function saveGameStateToFB() {
-  if (!G.roomCode) return;
-  const rd = await loadRoomFB(G.roomCode);
-  if (rd) {
-    rd.gameState = {
+function saveGameStateLocal() {
+  const gameData = loadGameLocal();
+  if (gameData) {
+    gameData.gameState = {
       roles: G.roles,
       alive: G.alive,
       eliminated: G.eliminated,
@@ -914,7 +841,7 @@ async function saveGameStateToFB() {
       scores: G.scores,
       revealPhaseCompleted: G.revealPhaseCompleted,
     };
-    await saveRoomFB(rd);
+    saveGameLocal(gameData);
   }
 }
 
@@ -958,14 +885,38 @@ function savePlayerScores() {
 function startRevealPhase() {
   loadAllScoresFromStorage();
   G.currentRevealIdx = 0;
-  showNextReveal();
+  showFirstPlayerTransition();
+}
+
+function showFirstPlayerTransition() {
+  const players = G.devicePlayers.filter(p => G.alive.includes(p));
+  if (players.length === 0) {
+    G.revealPhaseCompleted = true;
+    saveGameStateLocal();
+    showGameScreen();
+    return;
+  }
+
+  showScreen('s-reveal-queue');
+  const firstName = players[0];
+  const total = players.length;
+  document.getElementById('reveal-progress-text').textContent = `لاعب 1 / ${total}`;
+
+  document.getElementById('reveal-content').innerHTML = `
+    <div style="text-align:center;padding:24px;" class="fade-in">
+      <div style="font-size:48px;margin-bottom:16px;color:var(--purple2);\"><i class="fas fa-masks-theater"></i></div>
+      <div style="font-size:16px;color:var(--text2);margin-bottom:8px;">سلم التلفون لـ</div>
+      <div style="font-size:24px;font-weight:700;margin-bottom:24px;">${escHtml(firstName)}</div>
+      <div class="small" style="margin-bottom:24px;">تأكد أن ما حدا يشوف الشاشة</div>
+      <button class="btn btn-primary" onclick="showNextReveal()">جاهز →</button>
+    </div>`;
 }
 
 function showNextReveal() {
   const players = G.devicePlayers.filter(p => G.alive.includes(p));
   if (G.currentRevealIdx >= players.length) { 
     G.revealPhaseCompleted = true;
-    saveGameStateToFB();
+    saveGameStateLocal();
     showGameScreen(); 
     return; 
   }
@@ -974,7 +925,7 @@ function showNextReveal() {
   const name  = players[G.currentRevealIdx];
   const total = players.length;
   document.getElementById('reveal-progress-text').textContent =
-    `Joueur ${G.currentRevealIdx + 1} / ${total}`;
+    `لاعب ${G.currentRevealIdx + 1} / ${total}`;
 
   const role = G.roles[name];
   const content = document.getElementById('reveal-content');
@@ -982,31 +933,31 @@ function showNextReveal() {
   if (role === 'mr_white') {
     content.innerHTML = `
       <div class="role-reveal fade-in">
-        <div style="font-size:56px;margin-bottom:16px;">🕵️</div>
-        <div style="font-size:20px;font-weight:600;margin-bottom:4px;">VOUS ÊTES</div>
+        <div style="font-size:48px;margin-bottom:16px;color:var(--red2);\"><i class="fas fa-magnifying-glass"></i></div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px;">إنت</div>
         <div class="role-badge"
              style="background:rgba(232,69,69,.15);color:var(--red2);border:2px solid var(--red);">
           MR. WHITE
         </div>
         <div style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:28px;">
-          Vous <b style="color:var(--text)">ne connaissez pas</b> le mot secret.<br>
-          Écoutez les autres et bluffez !<br>
-          Si vous êtes éliminé, tentez de deviner.
+          إنت <b style="color:var(--text)">ما تعرفش</b> الكلمة السرّية.<br>
+          اسمع للخرين وبلوف!<br>
+          إذا طارو بيك، حاول تخمن.
         </div>
-        <button class="btn btn-primary" onclick="nextReveal()">J'ai compris →</button>
+        <button class="btn btn-primary" onclick="nextReveal()">فهمت →</button>
       </div>`;
   } else {
     const word = role === 'civil' ? G.words.civil : G.words.uc;
     content.innerHTML = `
       <div class="role-reveal fade-in">
-        <div style="font-size:56px;margin-bottom:16px;">📝</div>
-        <div style="font-size:20px;font-weight:600;margin-bottom:4px;color:var(--text2);">Votre mot secret</div>
+        <div style="font-size:48px;margin-bottom:16px;color:var(--green2);\"><i class="fas fa-scroll"></i></div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px;color:var(--text2);">كلمتك السرّية</div>
         <div class="word-box" style="color:var(--text);">${escHtml(word)}</div>
         <div style="color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:28px;">
-          Décrivez ce mot sans le dire directement.<br>
-          <b style="color:var(--amber2);">À vous de découvrir</b> si c'est le vrai mot ou la fausse piste !
+          صف هذه الكلمة بدون ما تقولها مباشرة.<br>
+          <b style="color:var(--amber2);">عليك تكتشف</b> إذا هي الكلمة الحقيقية ولا الكلمة المزوّرة!
         </div>
-        <button class="btn btn-primary" onclick="nextReveal()">J'ai vu mon mot →</button>
+        <button class="btn btn-primary" onclick="nextReveal()">شفت كلمتي →</button>
       </div>`;
   }
 }
@@ -1018,15 +969,15 @@ function nextReveal() {
     const nextName = players[G.currentRevealIdx];
     document.getElementById('reveal-content').innerHTML = `
       <div style="text-align:center;padding:24px;" class="fade-in">
-        <div style="font-size:56px;margin-bottom:16px;">🙈</div>
-        <div style="font-size:16px;color:var(--text2);margin-bottom:8px;">Passez le téléphone à</div>
+        <div style="font-size:48px;margin-bottom:16px;color:var(--purple2);\"><i class="fas fa-masks-theater"></i></div>
+        <div style="font-size:16px;color:var(--text2);margin-bottom:8px;">سلم التلفون لـ</div>
         <div style="font-size:24px;font-weight:700;margin-bottom:24px;">${escHtml(nextName)}</div>
-        <div class="small" style="margin-bottom:24px;">Assurez-vous que personne ne voit l'écran</div>
-        <button class="btn btn-primary" onclick="showNextReveal()">Prêt →</button>
+        <div class="small" style="margin-bottom:24px;">تأكد أن ما حدا يشوف الشاشة</div>
+        <button class="btn btn-primary" onclick="showNextReveal()">جاهز →</button>
       </div>`;
   } else {
     G.revealPhaseCompleted = true;
-    saveGameStateToFB();
+    saveGameStateLocal();
     showGameScreen();
   }
 }
@@ -1047,9 +998,9 @@ function showGameScreen() {
 function updateGameUI() {
   document.getElementById('round-num').textContent = G.round;
   const alive = G.alive.length, dead = G.eliminated.length;
-  document.getElementById('alive-count').textContent = alive + ' vivants';
+  document.getElementById('alive-count').textContent = alive + ' أحياء';
   const deadEl = document.getElementById('dead-count');
-  if (dead > 0) { deadEl.textContent = dead + ' éliminés'; deadEl.style.display = ''; }
+  if (dead > 0) { deadEl.textContent = dead + ' طارو'; deadEl.style.display = ''; }
   else deadEl.style.display = 'none';
 
   const tabVote = document.getElementById('tab-vote');
@@ -1082,7 +1033,7 @@ function renderTurnOrder() {
       background:${isNext ? 'rgba(232,69,69,.15)' : 'var(--card2)'};
       color:${isNext ? 'var(--red2)' : 'var(--text2)'};
       border:1px solid ${isNext ? 'rgba(232,69,69,.3)' : 'var(--border)'};">
-      ${i + 1}. ${escHtml(p)} ${isNext ? '👈 PARLE' : ''}</div>`;
+      ${i + 1}. ${escHtml(p)} ${isNext ? '👈 يحكي' : ''}</div>`;
   }).join('');
 }
 
@@ -1091,12 +1042,12 @@ function renderDevicePanel() {
   const el = document.getElementById('device-players-panel');
   if (!aliveOnDevice.length) { el.innerHTML = ''; return; }
 
-  el.innerHTML = `<div class="card"><h3>Vos joueurs actifs</h3><div class="gap">` +
+  el.innerHTML = `<div class="card"><h3>لاعبينك النشطين</h3><div class="gap">` +
     aliveOnDevice.map(p => {
       return `<div class="player-row">
         <div class="avatar" style="background:rgba(74,158,255,.15);color:var(--blue2)">${p[0].toUpperCase()}</div>
         <div style="flex:1;font-size:14px;font-weight:500;">${escHtml(p)}</div>
-        <span class="tag tag-blue">Actif</span>
+        <span class="tag tag-blue">نشط</span>
       </div>`;
     }).join('') + `</div></div>`;
 }
@@ -1118,8 +1069,8 @@ function renderVoteGrid() {
     grid.innerHTML = `
       <div style="grid-column:1/-1;padding:16px;text-align:center;color:var(--text2);">
         <div style="font-size:18px;margin-bottom:8px;">⏳</div>
-        <div>En attente de la décision de l'admin...</div>
-        <div class="small" style="margin-top:8px;">Seul l'admin peut éliminer</div>
+        <div>تضاري قرار الادمن...</div>
+        <div class="small" style="margin-top:8px;">الادمن فقط ينجم يطيح</div>
       </div>
       <div style="grid-column:1/-1;display:grid;gap:8px;grid-template-columns:repeat(2,1fr);">` +
       G.alive.map(p => `
@@ -1150,30 +1101,30 @@ function castVote(player) {
 }
 
 function processVotes() {
-  if (!selectedVote) return toast('Sélectionnez un joueur');
+  if (!selectedVote) return toast('إختر لاعب');
   const eliminated = selectedVote;
   G.eliminated.push(eliminated);
   G.alive = G.alive.filter(p => p !== eliminated);
-  saveGameStateToFB();
+  saveGameStateLocal();
   showEliminationScreen(eliminated, G.roles[eliminated]);
 }
 
 function renderStatusList() {
-  const roleNames = { mr_white: 'Mr. White', undercover: 'Undercover', civil: 'Civil' };
+  const roleNames = { mr_white: 'Mr. White', undercover: 'مستخبي', civil: 'مدني' };
   document.getElementById('status-list').innerHTML = `
     <div class="card" style="margin-bottom:4px;">
-      <h3>Vivants (${G.alive.length})</h3>
+      <h3>أحياء (${G.alive.length})</h3>
       <div class="gap">` +
     G.alive.map((p, i) => `
       <div class="player-row">
         <span class="alive-dot"></span>
         <div class="avatar" style="width:32px;height:32px;font-size:13px;background:${getAvatarBg(i)};color:${getAvatarColor(i)}">${p[0]}</div>
         <span style="flex:1;font-size:14px;">${escHtml(p)}</span>
-        ${G.devicePlayers.includes(p) ? '<span class="tag tag-blue" style="font-size:10px;">Vous</span>' : ''}
+        ${G.devicePlayers.includes(p) ? '<span class="tag tag-blue" style="font-size:10px;">إنت</span>' : ''}
       </div>`).join('') + `</div></div>` +
     (G.eliminated.length ? `
     <div class="card">
-      <h3>Éliminés (${G.eliminated.length})</h3>
+      <h3>طارو (${G.eliminated.length})</h3>
       <div class="gap">` +
     G.eliminated.map(p => `
       <div class="player-row" style="opacity:.45;">
@@ -1188,14 +1139,14 @@ function renderStatusList() {
 ───────────────────────────────────── */
 function showEliminationScreen(name, role) {
   showScreen('s-elim');
-  const roleNames  = { mr_white: 'MR. WHITE', undercover: 'UNDERCOVER', civil: 'CIVIL' };
+  const roleNames  = { mr_white: 'MR. WHITE', undercover: 'مستخبي', civil: 'مدني' };
   const roleColors = { mr_white: 'var(--red2)',   undercover: 'var(--amber2)', civil: 'var(--green2)' };
   const roleBg     = { mr_white: 'rgba(232,69,69,.15)', undercover: 'rgba(240,160,48,.15)', civil: 'rgba(69,201,138,.15)' };
   const roleBorder = { mr_white: 'var(--red)',   undercover: 'var(--amber)',  civil: 'var(--green)' };
-  const emoji      = { mr_white: '🕵️', undercover: '🥸', civil: '👥' };
+  const iconHtml   = { mr_white: '<i class="fas fa-magnifying-glass" style="color:var(--red2);\"></i>', undercover: '<i class="fas fa-user-secret" style="color:var(--amber2);\"></i>', civil: '<i class="fas fa-users" style="color:var(--green2);\"></i>' };
 
-  document.getElementById('elim-icon').textContent = emoji[role];
-  document.getElementById('elim-title').textContent = `${name} est éliminé !`;
+  document.getElementById('elim-icon').innerHTML = iconHtml[role];
+  document.getElementById('elim-title').textContent = `${name} طار!`;
   document.getElementById('elim-role-badge').innerHTML = `
     <div class="role-badge"
          style="background:${roleBg[role]};color:${roleColors[role]};border:2px solid ${roleBorder[role]};">
@@ -1211,36 +1162,36 @@ function showEliminationScreen(name, role) {
   if (!isMW && !G.isAdmin) {
     document.getElementById('elim-msg').innerHTML = `
       <div style="text-align:center;">
-        <div style="font-size:12px;color:var(--text2);margin-top:12px;">En attente de l'admin...</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:12px;">تضاري الادمن...</div>
       </div>`;
   } else if (!isMW && G.isAdmin) {
-    document.getElementById('elim-msg').textContent = `Le joueur était civil. La partie continue...`;
+    document.getElementById('elim-msg').textContent = `اللاعب كان مدني. اللعبة تواصل...`;
   } else {
-    document.getElementById('elim-msg').textContent = 'Vous pouvez encore gagner en devinant le mot des Civils !';
+    document.getElementById('elim-msg').textContent = 'تنجم توا تربح إذا خمّنت كلمة المدنيين!';
   }
 }
 
 function submitMrWhiteGuess() {
   const guess = document.getElementById('mw-guess-input').value.trim();
-  if (!guess) return toast('Entrez votre réponse');
+  if (!guess) return toast('أدخل جوابك');
   if (guess.toLowerCase() === G.words.civil.toLowerCase()) {
     G.mrWhiteGuessed = true;
-    saveGameStateToFB();
-    endGame('mr_white', 'Mr. White a deviné le mot !');
+    saveGameStateLocal();
+    endGame('mr_white', 'Mr. White خمّن الكلمة!');
   } else {
-    toast('Mauvaise réponse ! Les civils gagnent.');
+    toast('جواب خاطئ! المدنيين ربحو.');
     document.getElementById('mw-guess-input').value = '';
     document.getElementById('mrwhite-guess-panel').style.display = 'none';
     document.getElementById('elim-continue-btn').style.display   = 'block';
     document.getElementById('elim-msg').textContent =
-      `Mauvaise réponse. Le mot était : "${G.words.civil}"`;
-    saveGameStateToFB();
+      `جواب خاطئ. الكلمة كانت: "${G.words.civil}"`;
+    saveGameStateLocal();
   }
 }
 
-async function continueAfterElim() {
+function continueAfterElim() {
   if (!G.isAdmin) {
-    toast('Seul l\'admin peut continuer');
+    toast('الادمن فقط ينجم يواصل');
     return;
   }
   G.round++;
@@ -1253,7 +1204,7 @@ async function continueAfterElim() {
   }
   
   updateGameUI();
-  await saveGameStateToFB();
+  saveGameStateLocal();
   showScreen('s-game');
   if (G.isAdmin) {
     gameTab('discuss');
@@ -1272,13 +1223,13 @@ function checkWin() {
   const cvAlive = alive.filter(p => G.roles[p] === 'civil');
 
   if (mrAlive.length === 0 && ucAlive.length === 0)
-    return { winner: 'civil', msg: 'Tous les imposteurs ont été éliminés !' };
+    return { winner: 'civil', msg: 'كل المستخبيين طارو!' };
   if (mrAlive.length > 0 && alive.length <= 2)
-    return { winner: 'mr_white', msg: 'Mr. White a survécu jusqu\'à la fin !' };
+    return { winner: 'mr_white', msg: 'Mr. White صمد حتى الآخر!' };
   if (ucAlive.length > 0 && cvAlive.length === 0)
-    return { winner: 'undercover', msg: 'L\'Undercover a éliminé tous les Civils !' };
+    return { winner: 'undercover', msg: 'المستخبي طيّح جميع المدنيين!' };
   if (ucAlive.length > 0 && alive.length <= 2)
-    return { winner: 'undercover', msg: 'L\'Undercover a survécu jusqu\'à la fin !' };
+    return { winner: 'undercover', msg: 'المستخبي صمد حتى الآخر!' };
   return null;
 }
 
@@ -1317,17 +1268,17 @@ function calculateScores(winner) {
 /* ─────────────────────────────────────
    END GAME
 ───────────────────────────────────── */
-async function endGame(winner, msg) {
+function endGame(winner, msg) {
   calculateScores(winner);
   
   showScreen('s-end');
-  const icons  = { mr_white: '🕵️', undercover: '🥸', civil: '🏆' };
-  const teams  = { mr_white: 'MR. WHITE GAGNE !', undercover: 'UNDERCOVER GAGNE !', civil: 'LES CIVILS GAGNENT !' };
+  const iconHtml = { mr_white: '<i class="fas fa-magnifying-glass" style="font-size:64px;color:var(--red);\"></i>', undercover: '<i class="fas fa-user-secret" style="font-size:64px;color:var(--amber);\"></i>', civil: '<i class="fas fa-trophy" style="font-size:64px;color:var(--green);\"></i>' };
+  const teams  = { mr_white: 'MR. WHITE ربح!', undercover: 'المستخبي ربح!', civil: 'المدنيين ربحو!' };
   const colors = { mr_white: 'var(--red)', undercover: 'var(--amber)', civil: 'var(--green)' };
   const tags   = { mr_white: 'tag-red', undercover: 'tag-amber', civil: 'tag-green' };
-  const roleNames = { mr_white: 'Mr. White', undercover: 'Undercover', civil: 'Civil' };
+  const roleNames = { mr_white: 'Mr. White', undercover: 'مستخبي', civil: 'مدني' };
 
-  document.getElementById('end-icon').textContent  = icons[winner];
+  document.getElementById('end-icon').innerHTML  = iconHtml[winner];
   document.getElementById('end-title').style.color = colors[winner];
   document.getElementById('end-team').textContent  = teams[winner];
   document.getElementById('end-team').style.color  = colors[winner];
@@ -1336,8 +1287,8 @@ async function endGame(winner, msg) {
 
   document.getElementById('end-reveal').innerHTML = `
     <div class="card">
-      <h3>Révélation complète</h3>
-      <div class="small" style="margin-bottom:12px;">Mot Civils : <b style="color:var(--green2)">${escHtml(G.words.civil)}</b>  ·  Mot Undercover : <b style="color:var(--amber2)">${escHtml(G.words.uc)}</b></div>
+      <h3>كشف النقاب</h3>
+      <div class="small" style="margin-bottom:12px;">كلمة المدنيين : <b style="color:var(--green2)">${escHtml(G.words.civil)}</b>  ·  كلمة المستخبي : <b style="color:var(--amber2)">${escHtml(G.words.uc)}</b></div>
       <div class="gap" style="margin-bottom:16px;">` +
     sortedPlayers.map((p, idx) => {
       const r = G.roles[p];
@@ -1352,12 +1303,12 @@ async function endGame(winner, msg) {
           <div class="small" style="color:var(--text2);">${roleNames[r]}</div>
         </div>
         <span class="tag ${tags[r]}" style="margin-right:8px;">${roleNames[r]}</span>
-        <div style="font-size:18px;font-weight:700;color:var(--amber2);min-width:40px;text-align:right;">${score} pts</div>
+        <div style="font-size:18px;font-weight:700;color:var(--amber2);min-width:40px;text-align:right;">${score} نقطة</div>
       </div>`;
     }).join('') + `</div></div>
     
     <div class="card">
-      <h3>🏆 Classement</h3>
+      <h3>🏆 الترتيب</h3>
       <div class="gap">` +
     sortedPlayers.map((p, idx) => {
       const score = G.scores[p] || 0;
@@ -1371,23 +1322,13 @@ async function endGame(winner, msg) {
     }).join('') + `</div></div>`;
 
   const rematchBtn = document.getElementById('btn-rematch');
-  if (G.isAdmin) {
-    rematchBtn.style.display = 'block';
-  } else {
-    rematchBtn.style.display = 'none';
-  }
-
-  if (G.roomCode) {
-    if (roomListener) roomListener();
-    roomListener = null;
-    await deleteRoomFB(G.roomCode);
-  }
+  rematchBtn.style.display = 'block';
 }
 
 /* ─────────────────────────────────────
    REMATCH
 ───────────────────────────────────── */
-async function rematch() {
+function rematch() {
   const savedScores = { ...G.scores };
   const players = [...G.rematchPlayers];
   const mrCounts = { ...G.mrCounts };
@@ -1396,12 +1337,11 @@ async function rematch() {
   const wc = pair[0];
   const wu = pair[1];
   
-  const code = genCode();
   const roles = assignRoles(players, mrCounts.mr, mrCounts.uc);
   const turnOrder = generateTurnOrder(players, roles);
   
   G = {
-    roomCode: code,
+    roomCode: 'local_' + Date.now(),
     isAdmin: true,
     devicePlayers: [...G.devicePlayers],
     allPlayers: [...players],
@@ -1422,11 +1362,11 @@ async function rematch() {
     rematchPlayers: [...players],
   };
   
-  const roomData = {
-    code,
+  const gameData = {
+    code: G.roomCode,
     status: 'started',
     adminName: G.devicePlayers[0],
-    players: players.map(n => ({ name: n, device: 'rematch' })),
+    players: players.map(n => ({ name: n, device: 'local' })),
     words: { civil: wc, uc: wu },
     mrCounts: mrCounts,
     gameState: {
@@ -1444,7 +1384,7 @@ async function rematch() {
     createdAt: Date.now(),
   };
   
-  await saveRoomFB(roomData);
+  saveGameLocal(gameData);
   startRevealPhase();
 }
 
@@ -1452,9 +1392,6 @@ async function rematch() {
    NEW GAME / LEAVE
 ───────────────────────────────────── */
 function newGame() {
-  if (roomListener) roomListener();
-  roomListener = null;
-  
   const savedScores = { ...G.scores };
   G = {
     roomCode:'',isAdmin:false,devicePlayers:[],allPlayers:[],
@@ -1467,6 +1404,7 @@ function newGame() {
     rematchPlayers: [],
   };
   extraPlayers = []; joinPlayers = [];
+  clearGameLocal();
   showScreen('s-home');
 }
 
@@ -1474,14 +1412,7 @@ function confirmLeave() {
   document.getElementById('overlay-leave').classList.remove('hidden');
 }
 
-async function leaveGame() {
-  if (G.roomCode) {
-    if (G.isAdmin) {
-      await deleteRoomFB(G.roomCode);
-    }
-    if (roomListener) roomListener();
-    roomListener = null;
-  }
+function leaveGame() {
   closeOverlay('overlay-leave');
   newGame();
 }
